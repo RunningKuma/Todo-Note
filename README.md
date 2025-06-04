@@ -16,14 +16,20 @@ Since TypeScript cannot handle type information for `.vue` imports, they are shi
 
 You can learn more about Take Over mode [here](https://github.com/johnsoncodehk/volar/discussions/471).
 
-## 开发流程
+## 下载依赖
 
 ```bash
-
-cd Todo-Note
-
 pnpm install
+```
 
+## 启用开发预览
+
+```bash
 pnpm tauri dev
+```
 
+## 检查代码格式
+
+```bash
+pnpm lint
 ```
