@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from "vue";
-import { invoke } from "@tauri-apps/api/core";
 import Button from "primevue/button";
 import InputText from 'primevue/inputtext';
 
