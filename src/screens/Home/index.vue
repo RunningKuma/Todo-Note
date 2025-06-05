@@ -2,34 +2,38 @@
 import { ref } from "vue";
 import Button from "primevue/button";
 import InputText from 'primevue/inputtext';
+import {  userOps } from "@/api/auth";
+import router from "@/router";
 
-const username = ref("");
-const email = ref("");
+// const username = ref("");
+// const email = ref("");
 const displayMessage = ref("");
+const userData  = userOps.getUserData();
 
-const handleSubmit = () => {
-  displayMessage.value = `Hello, ${username.value} (${email.value})!`;
+const handleLogout = () => {
+  userOps.logout()
+  router.push({name: 'auth'})
 };
+
 </script>
 
 <template>
-  <main class="container">
+  <!-- <div class="container"> -->
     <h1>Welcome to Tauri + Vue + PrimeVue</h1>
+    <h2 >You are login as {{ userData?.username }}</h2>
     <div class="login-page">
-      <InputText type="text" v-model="username" placeholder="Username" />
-      <InputText type="text" v-model="email" placeholder="Email" />
       <Button
-        label="Submit"
+        label="Logout"
         severity="secondary"
-        @click="handleSubmit"
+        @click="handleLogout"
       />
       <span>{{ displayMessage }}</span>
     </div>
-  </main>
+  <!-- </div> -->
 </template>
 
 <style>
-@import '@/styles/global.css';
+/* @import './styles/global.css'; */
 </style>
 
 <style scoped>

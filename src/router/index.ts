@@ -1,11 +1,26 @@
 import { createMemoryHistory, createRouter, type RouteRecordRaw } from "vue-router";
 
-import LoginView from '@/screens/Login.vue';
+import HomeView from '@/screens/Home/index.vue';
+import LoginView from '@/screens/Login/index.vue';
+import { userOps } from "@/api/auth";
 
 const routes: readonly RouteRecordRaw[] = [
-	{ path: '/login', name: 'login', component: LoginView },
+	{ path: '/', name: 'home', component: HomeView },
+	{ path: '/auth', name: 'auth', component: LoginView },
 ]
-export const router = createRouter({
+const router = createRouter({
 	history: createMemoryHistory(),
 	routes: routes
 })
+router.beforeEach((to, from, next) => {
+	// next({ name: 'auth' });
+	const isAuthenticated = userOps.checkAuth();
+	// console.log(userOps.getUserData());
+	if (isAuthenticated || to.name === 'auth') {
+		next();
+	} else {
+		console.warn('用户未认证，重定向到登录页面');
+		next({ name: 'auth' });
+	}
+})
+export default router;
