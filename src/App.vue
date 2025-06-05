@@ -3,23 +3,13 @@ import { RouterView } from "vue-router";
 </script>
 
 <template>
-  <main class="container">
-    <RouterView/>
-  </main>
+  <RouterView/>
 </template>
 
 <style>
 @import './styles/global.css';
-</style>
-
-<style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  text-align: center;
-}
-
+@import 'primeicons/primeicons.css';
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+@custom-variant dark (&:where(.my-app-dark, .my-app-dark *));
 </style>

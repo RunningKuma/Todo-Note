@@ -1,44 +1,43 @@
 <script setup>
 import { ref } from "vue";
-import Button from "primevue/button";
-import InputText from 'primevue/inputtext';
 import { userOps } from "@/api/auth";
 import router from "@/router";
+import LoginCard from "./LoginCard.vue";
+import RegisterCard from "./RegisterCard.vue";
+import InitialCard from "./InitialCard.vue";
 
-const username = ref("");
-const email = ref("");
-const displayMessage = ref("");
-
-const handleSubmit = (event) => {
-  //@todo implement real submit logic
-  event.preventDefault();
-  userOps.login();
-  router.push({ name: 'home' });
-  displayMessage.value = `Hello, ${username.value} (${email.value})!`;
-};
-
-if(userOps.checkAuth()){
+if (userOps.checkAuth()){
   router.push({ name: 'home' });
 }
+
+const loginStep = ref(0);
+const stepTo = (new_value) => {
+  loginStep.value = new_value;
+};
+
+const email = ref("");
 </script>
 
 <template>
-  <!-- <div class="container"> -->
-    <h1>Login</h1>
-    <div>
-      <!--@todo use primevue Form instead  -->
-      <form class="login-page" :onsubmit="handleSubmit">
-        <InputText name="username" type="text" v-model="username" placeholder="Username" />
-        <InputText name="email" type="text" v-model="email" placeholder="Email" />
-        <Button
-        label="Submit"
-        severity="secondary"
-        type="submit"
-        />
-      </form>
-      <span>{{ displayMessage }}</span>
+  <div class="flex flex-col items-center justify-center min-h-screen p-10">
+    <div class="w-full max-w-md">
+      <InitialCard
+        v-if="loginStep === 0"
+        v-model="email"
+        @stepTo="stepTo"
+      />
+      <LoginCard
+        v-else-if="loginStep === 1"
+        v-model="email"
+        @stepTo="stepTo"
+      />
+      <RegisterCard
+        v-else
+        v-model="email"
+        @stepTo="stepTo"
+      />
     </div>
-  <!-- </div> -->
+  </div>
 </template>
 
 <style>
@@ -46,19 +45,4 @@ if(userOps.checkAuth()){
 </style>
 
 <style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  text-align: center;
-}
-
-.login-page {
-  width: 36em;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-}
 </style>

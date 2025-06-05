@@ -4,6 +4,11 @@ import type { UserData } from "./types/user";
 let isAuthenticated: boolean;
 let userData: UserData | undefined;
 
+const checkEmail = (email: string) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+};
+
 export const userOps = {
   checkAuth: () => {
     //@todo 换成使用 token 判断
@@ -26,11 +31,30 @@ export const userOps = {
     }
     return userData;
   },
-  login: () => {
-    //@todo implement real login logic
+  getLoginOptions: async (email: string) => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (!checkEmail(email)) {
+      return { success: false, message: 'Invalid email format.' };
+    } else if (email === "test@test.com") {
+      return { success: true };
+    } else {
+      return { success: false, message: 'Account not found. Please sign up.' };
+    }
+  },
+  login: async (email: string, password: string) => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (!checkEmail(email)) {
+      return { success: false, message: 'Invalid email format.' };
+    } else if (email !== "test@test.com") {
+      return { success: false, message: 'Account not found. Please sign up.' };
+    } else if (password !== "123456") {
+      return { success: false, message: 'Incorrect password.' };
+    }
+
     userData = testUserData;
     isAuthenticated = true;
     sessionStorage.setItem('userData', JSON.stringify(userData));
+    return { success: true };
   },
   logout: () => {
     userData = undefined;
