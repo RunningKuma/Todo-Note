@@ -10,7 +10,6 @@ const displayMessage = ref("");
 const handleSubmit = () => {
   displayMessage.value = `Hello, ${username.value} (${email.value})!`;
 };
-
 </script>
 
 <template>
@@ -30,7 +29,7 @@ const handleSubmit = () => {
 </template>
 
 <style>
-@import './styles/global.css';
+@import '@/styles/global.css';
 </style>
 
 <style scoped>
