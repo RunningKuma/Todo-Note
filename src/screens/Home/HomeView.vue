@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from "vue";
 import Button from "primevue/button";
-import InputText from 'primevue/inputtext';
 import {  userOps } from "@/api/auth";
 import router from "@/router";
 
@@ -11,8 +10,8 @@ const displayMessage = ref("");
 const userData  = userOps.getUserData();
 
 const handleLogout = () => {
-  userOps.logout()
-  router.push({name: 'auth'})
+  userOps.logout();
+  router.push({name: 'auth'});
 };
 
 </script>

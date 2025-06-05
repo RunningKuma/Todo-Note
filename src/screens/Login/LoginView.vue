@@ -12,7 +12,7 @@ const displayMessage = ref("");
 const handleSubmit = (event) => {
   //@todo implement real submit logic
   event.preventDefault();
-  userOps.login()
+  userOps.login();
   router.push({ name: 'home' });
   displayMessage.value = `Hello, ${username.value} (${email.value})!`;
 };
