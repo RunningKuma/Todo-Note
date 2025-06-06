@@ -12,8 +12,8 @@ import Message from "primevue/message";
 import router from "@/router";
 
 defineEmits(['stepTo']);
-const email = defineModel();
 
+const email = defineModel();
 const loading = ref(false);
 
 const errorDisplay = ref(false);
@@ -84,6 +84,7 @@ const handleForm = async () => {
                 v-model="password"
                 type="password"
                 class="w-full"
+                autofocus
               />
             </IconField>
             <Message
@@ -105,7 +106,7 @@ const handleForm = async () => {
           label="Sign up with email"
           class="w-full"
           severity="secondary"
-          @click="$emit('stepTo', 2)"
+          @click="$emit('stepTo', 'register')"
           :disabled="loading"
         />
       </div>

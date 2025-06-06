@@ -26,7 +26,7 @@ const handleForm = async () => {
   const result = await userOps.getLoginOptions(email.value);
   if (result.success) {
     loading.value = false;
-    emit('stepTo', 1);
+    emit('stepTo', 'login');
   } else {
     loading.value = false;
     errorDisplay.value = true;
@@ -80,7 +80,7 @@ const handleForm = async () => {
           label="Sign up with email"
           class="w-full"
           severity="secondary"
-          @click="$emit('stepTo', 2)"
+          @click="$emit('stepTo', 'register')"
           :disabled="loading"
         />
       </div>
@@ -88,5 +88,5 @@ const handleForm = async () => {
   </Card>
 </template>
 
-<script setup>
-</script>
+<style scoped>
+</style>

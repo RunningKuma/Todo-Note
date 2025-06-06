@@ -5,12 +5,13 @@ import router from "@/router";
 import LoginCard from "./LoginCard.vue";
 import RegisterCard from "./RegisterCard.vue";
 import InitialCard from "./InitialCard.vue";
+import RegisterDoneCard from "./RegisterDoneCard.vue";
 
 if (userOps.checkAuth()){
   router.push({ name: 'home' });
 }
 
-const loginStep = ref(0);
+const loginStep = ref("initial");
 const stepTo = (new_value) => {
   loginStep.value = new_value;
 };
@@ -22,27 +23,27 @@ const email = ref("");
   <div class="flex flex-col items-center justify-center min-h-screen p-10">
     <div class="w-full max-w-md">
       <InitialCard
-        v-if="loginStep === 0"
+        v-if="loginStep === 'initial'"
         v-model="email"
         @stepTo="stepTo"
       />
       <LoginCard
-        v-else-if="loginStep === 1"
+        v-else-if="loginStep === 'login'"
         v-model="email"
         @stepTo="stepTo"
       />
       <RegisterCard
-        v-else
+        v-else-if="loginStep === 'register'"
         v-model="email"
+        @stepTo="stepTo"
+      />
+      <RegisterDoneCard
+        v-else-if="loginStep === 'registerDone'"
         @stepTo="stepTo"
       />
     </div>
   </div>
 </template>
-
-<style>
-/* @import '@/styles/global.css'; */
-</style>
 
 <style scoped>
 </style>

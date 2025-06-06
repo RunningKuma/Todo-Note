@@ -56,6 +56,10 @@ export const userOps = {
     sessionStorage.setItem('userData', JSON.stringify(userData));
     return { success: true };
   },
+  register: async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return { success: true, message: 'Registration successful. Please log in.' };
+  },
   logout: () => {
     userData = undefined;
     isAuthenticated = false;
