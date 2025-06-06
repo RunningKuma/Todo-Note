@@ -98,7 +98,7 @@ const handleForm = async () => {
           </div>
           <Button
             type="submit"
-            label="Sign in"
+            label="Login"
             :loading="loading"
           />
         </form>
