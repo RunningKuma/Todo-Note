@@ -43,13 +43,11 @@ const handleForm = async () => {
 <template>
   <Card>
     <template #title>
-      <div class="flex flex-col items-center gap-2 justify-center">
-        <Skeleton class="size-32!"></Skeleton>
-        <Divider />
-      </div>
+      <Skeleton class="size-32! mx-auto"></Skeleton>
+      <Divider />
     </template>
     <template #content>
-      <div class="flex flex-col gap-4">
+      <div>
         <form @submit.prevent="handleForm" class="flex flex-col gap-4">
           <LoginInput id="email" placeholder="example@example.com" icon="pi pi-at" v-model="email"
             :errorDisplay="errorDisplay" :errorMessage="errorMessage.email" required

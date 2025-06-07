@@ -36,14 +36,14 @@ const handleForm = async () => {
 <template>
   <Card>
     <template #title>
-      <div class="flex flex-col items-center gap-2 justify-center">
-        <Skeleton class="size-32!"></Skeleton>
-        <Divider />
-      </div>
+      <!-- @todo try merging initial and login page? -->
+      <Skeleton class="size-32! mx-auto"></Skeleton>
+      <Divider />
     </template>
     <template #content>
-      <div class="flex flex-col gap-4">
+      <div>
         <form @submit.prevent="handleForm" class="flex flex-col gap-4">
+          <!-- @todo fix pattern -->
           <LoginInput id="email" placeholder="example@example.com" icon="pi pi-at" v-model="email"
             :errorDisplay="errorDisplay" :errorMessage="errorMessage" required
             pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -57,5 +57,4 @@ const handleForm = async () => {
   </Card>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

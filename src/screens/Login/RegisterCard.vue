@@ -54,7 +54,7 @@ const handleForm = async () => {
         @click="$emit('stepTo', 'login')" />
     </template>
     <template #content>
-      <div class="flex flex-col gap-4">
+      <div>
         <form @submit.prevent="handleForm" class="flex flex-col gap-4">
           <LoginInput id="email" placeholder="example@example.com" icon="pi pi-at" v-model="email"
             :errorDisplay="errorDisplay.email" :errorMessage="errorMessage.email" required
