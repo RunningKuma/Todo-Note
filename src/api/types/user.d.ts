@@ -2,8 +2,9 @@ import type { Todo } from "./todo";
 
 export type UserData = {
 	id: string,
-	token: string | null,
+	email: string,
 	username: string,
 	// roles: 'admin' | 'user',
+	token: string | null,
 	todo: Todo[]
 }

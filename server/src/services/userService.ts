@@ -2,22 +2,24 @@
 
 import { randomUUID } from 'crypto';
 import { User } from '../models/user';
+import { UserRawData } from '@server/types/db';
 
 export class UserService {
-  async createUser(username: string, password: string): Promise<User> {
-  // 这里可以添加创建用户的逻辑
-    const newUser = new User(randomUUID(), username, password);
-    await newUser.save();
-    return newUser;
+  async createUser(email: string, username: string, password: string): Promise<UserRawData | null> {
+    const id = randomUUID();
+    await User.create(id, email, username, password);
+    return await User.findUser.findById(id);
   }
 
-  async getUserById(id: string): Promise<User | null> {
-    // 这里可以添加根据 ID 获取用户的逻辑
-    return await User.findById(id);
+  async getUserById(id: string): Promise<UserRawData | null> {
+    return await User.findUser.findById(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | null> {
-    // 这里可以添加根据用户名获取用户的逻辑
-    return await User.findByUsername(username);
+  async getUserByUsername(username: string): Promise<UserRawData | null> {
+    return await User.findUser.findByUsername(username);
+  }
+
+  async getUserByEmail(email: string): Promise<UserRawData | null> {
+    return await User.findUser.findByEmail(email);
   }
 }
