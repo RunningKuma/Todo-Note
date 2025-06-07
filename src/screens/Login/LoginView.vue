@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import { userOps } from "@/api/auth";
 import router from "@/router";
@@ -11,8 +11,9 @@ if (userOps.checkAuth()){
   router.push({ name: 'home' });
 }
 
-const loginStep = ref("initial");
-const stepTo = (new_value) => {
+type LoginType = "initial" | "login" | "register" | "registerDone";
+const loginStep = ref<LoginType>("initial");
+const stepTo = (new_value: LoginType) => {
   loginStep.value = new_value;
 };
 

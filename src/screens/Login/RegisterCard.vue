@@ -1,12 +1,9 @@
 <script setup>
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
-import InputText from "primevue/inputtext";
 import Button from "primevue/button";
 import Card from "primevue/card";
-import Message from "primevue/message";
 import { ref } from "vue";
 import { userOps } from "@/api/auth";
+import LoginInput from "./components/LoginInput.vue";
 
 const emit = defineEmits(['stepTo']);
 const email = defineModel();
@@ -81,108 +78,21 @@ const handleForm = async () => {
 <template>
   <Card>
     <template #title>
-      <Button
-        variant="text"
-        label="Back to login"
-        icon="pi pi-arrow-left"
-        size="small"
-        @click="$emit('stepTo', 'login')"
-      />
+      <Button variant="text" label="Back to login" icon="pi pi-arrow-left" size="small"
+        @click="$emit('stepTo', 'login')" />
     </template>
     <template #content>
       <div class="flex flex-col gap-4">
-        <form
-          @submit.prevent="handleForm"
-          class="flex flex-col gap-4"
-        >
-          <div class="flex-auto">
-            <label for="email" class="block font-semibold mb-2">Email</label>
-            <IconField>
-              <InputIcon class="pi pi-at" />
-              <InputText
-                v-model="email"
-                type="text"
-                class="w-full"
-                placeholder="example@example.com"
-              />
-            </IconField>
-            <Message
-              v-if="emailErrorDisplay"
-              size="small"
-              severity="error"
-              variant="simple"
-            >
-              {{ emailErrorMessage }}
-            </Message>
-          </div>
-          <div class="flex-auto">
-            <label for="username" class="block font-semibold mb-2">Username</label>
-            <IconField>
-              <InputIcon class="pi pi-user" />
-              <InputText
-                v-model="username"
-                type="text"
-                class="w-full"
-                placeholder=""
-              />
-            </IconField>
-            <Message
-              v-if="usernameErrorDisplay"
-              size="small"
-              severity="error"
-              variant="simple"
-            >
-              {{ usernameErrorMessage }}
-            </Message>
-          </div>
-          <div class="flex-auto">
-            <label for="password" class="block font-semibold mb-2">Password</label>
-            <IconField>
-              <InputIcon class="pi pi-key" />
-              <InputText
-                v-model="password"
-                type="password"
-                class="w-full"
-                placeholder=""
-                @input="validatePassword"
-              />
-            </IconField>
-            <Message
-              v-if="pswErrorDisplay"
-              size="small"
-              severity="error"
-              variant="simple"
-            >
-              {{ pswErrorMessage }}
-            </Message>
-          </div>
-          <div class="flex-auto">
-            <label for="confirm" class="block font-semibold mb-2">Confirm Password</label>
-            <IconField>
-              <InputIcon class="pi pi-key" />
-              <InputText
-                v-model="confirm"
-                type="password"
-                class="w-full"
-                placeholder=""
-                @input="validatePassword"
-                :invalid="passwordMismatch"
-              />
-            </IconField>
-            <Message
-              v-if="passwordMismatch"
-              size="small"
-              severity="error"
-              variant="simple"
-            >
-              Passwords do not match.
-            </Message>
-          </div>
-          <Button
-            type="submit"
-            label="Sign up"
-            :loading="loading"
-          />
+        <form @submit.prevent="handleForm" class="flex flex-col gap-4">
+          <LoginInput id="email" placeholder="example@example.com" icon="pi pi-at" v-model="email"
+            :errorDisplay="emailErrorDisplay" :errorMessage="emailErrorMessage" />
+          <LoginInput id="username" placeholder="Username" icon="pi pi-user" v-model="username"
+            :errorDisplay="usernameErrorDisplay" :errorMessage="usernameErrorMessage" />
+          <LoginInput id="password" icon="pi pi-key" v-model="password" :errorDisplay="pswErrorDisplay"
+            :errorMessage="pswErrorMessage" @input="validatePassword" />
+          <LoginInput id="confirm" title="Confirm Password" icon="pi pi-key" v-model="confirm" type="password"
+            :errorDisplay="passwordMismatch" errorMessage="Passwords do not match." @input="validatePassword" />
+          <Button type="submit" label="Sign up" :loading="loading" />
         </form>
       </div>
     </template>
