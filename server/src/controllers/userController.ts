@@ -1,7 +1,7 @@
 // filepath: /sqlite-auth-server/sqlite-auth-server/src/controllers/userController.ts
 
 import { Request, Response } from 'express';
-import UserService from '../services/userService';
+import { UserService } from '../services/userService';
 
 class UserController {
   private userService: UserService;

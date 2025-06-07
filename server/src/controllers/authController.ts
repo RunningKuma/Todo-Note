@@ -5,6 +5,7 @@ import { hashPassword, comparePassword } from '../utils/password';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import { UserData } from '@server/types/user';
+import { generateToken } from '@server/utils/jwt';
 
 export class AuthController {
   private userService: UserService;
@@ -13,20 +14,29 @@ export class AuthController {
     this.userService = new UserService();
   }
 
-  public async register(req: Request, res: Response): Promise<void> {
+  //! 使用 成员定义 会导致 express 路由处理器中的 this 绑定丢失为 undefined
+  // public async register(req: Request, res: Response): Promise<void> {
+  public register = async (req: Request, res: Response): Promise<void> => {
     const { email, username, password }: { email: string; username: string; password: string } = req.body;
 
+    //@todo 传过来的 password 不应是明文
     const hashedPassword = await hashPassword(password);
 
     try {
-      await this.userService.createUser(email, username, hashedPassword);
-      res.status(201).json({ message: 'User registered successfully' });
+      const userData = await this.userService.createUser(email, username, hashedPassword);
+      res.status(201).json({ message: 'User registered successfully', user: userData });
     } catch (error) {
+      console.error('Error registering user:', error);
+      //@todo implement error type
+      if ((error as { code: string }).code === '"SQLITE_CONSTRAINT"') {
+        res.status(400).json({ message: 'User already exists' }).send();
+        return;
+      }
       res.status(500).json({ message: 'Error registering user', error });
     }
-  }
+  };
 
-  public async login(req: Request, res: Response): Promise<void> {
+  public login = async (req: Request, res: Response): Promise<void> => {
     const { email, password }: { email: string; password: string } = req.body;
 
     try {
@@ -47,12 +57,13 @@ export class AuthController {
         console.warn('JWT_SECRET is not set.');
       }
       //@todo expire？
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string);//, { expiresIn: '1h' }
+      const token = generateToken(user.id);
 
       //@todo implement todos query
 
       res.status(200).json({ id: user.id, email: user.email, username: user.username, token, todo: [] } as UserData);
     } catch (error) {
+      console.error('Error logging in:', error);
       res.status(500).json({ message: 'Error logging in', error });
     }
   }

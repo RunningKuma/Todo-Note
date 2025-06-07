@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import sqlite3 from 'sqlite3';
 import { Database } from 'sqlite3';
 
@@ -17,19 +18,21 @@ class DatabaseService {
   /**
    * 初始化数据库连接
    */
-  async connect() {
+  async connect(path: string = resolve(__dirname, '../../database/database.sqlite')) {
     try {
-      this.db = new sqlite3.Database('@/database/todo.db', (err) => {
+      this.db = new sqlite3.Database(path, (err) => {
+      //@todo fix 两次连接
         if (err) {
           console.error('数据库连接失败:', err);
           throw err;
         }
-        console.log('数据库连接成功');
+        console.log('数据库 ' + path + ' 连接成功');
       });
     } catch (error) {
       console.error('数据库连接失败:', error);
       throw error;
     }
+
   }
 
   /**
@@ -39,7 +42,7 @@ class DatabaseService {
    */
   async run(sql: string, params: any[] = []): Promise<void> {
     if (!this.db) {
-      db.connect();
+      this.connect();
     }
     return new Promise((resolve, reject) => {
       this.db!.run(sql, params, function (err) {
@@ -57,7 +60,7 @@ class DatabaseService {
    */
   async query<T>(sql: string, params: any[] = []): Promise<T[]> {
     if (!this.db) {
-      throw new Error('数据库未连接');
+      this.connect();
     }
     return new Promise((resolve, reject) => {
       this.db!.all<T>(sql, params, (err, rows) => {
@@ -75,7 +78,7 @@ class DatabaseService {
    */
   async queryOne<T>(sql: string, params: any[] = []): Promise<T | undefined> {
     if (!this.db) {
-      throw new Error('数据库未连接');
+      this.connect();
     }
     return new Promise((resolve, reject) => {
       this.db!.get<T>(sql, params, (err, row) => {
@@ -93,7 +96,7 @@ class DatabaseService {
    */
   async execute(sql: string, params: any[] = []): Promise<number> {
     if (!this.db) {
-      throw new Error('数据库未连接');
+      this.connect();
     }
     return new Promise((resolve, reject) => {
       this.db!.run(sql, params, function (err) {
@@ -112,9 +115,9 @@ class DatabaseService {
   //@todo ？这些是干什么的？
   async beginTransaction(): Promise<void> {
     if (!this.db) {
-      throw new Error('数据库未连接');
+      this.connect();
     }
-    await this.db.run('BEGIN TRANSACTION');
+    await this.db!.run('BEGIN TRANSACTION');
   }
 
   /**
@@ -122,9 +125,9 @@ class DatabaseService {
    */
   async commit(): Promise<void> {
     if (!this.db) {
-      throw new Error('数据库未连接');
+      this.connect();
     }
-    await this.db.run('COMMIT');
+    await this.db!.run('COMMIT');
   }
 
   /**
@@ -132,7 +135,12 @@ class DatabaseService {
    */
   async rollback(): Promise<void> {
     if (!this.db) {
-      throw new Error('数据库未连接');
+      this.connect();
+    }
+    await this.db!.run('ROLLBACK');
+  }
+
+  /**
     }
     await this.db.run('ROLLBACK');
   }

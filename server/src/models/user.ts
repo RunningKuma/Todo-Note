@@ -17,7 +17,7 @@ export const User = {
 
   create: (id: string, email: string, username: string, password: string): Promise<void> => {
     return db.run(`INSERT INTO users (id, email, username, password) VALUES (?, ?, ?, ?)`, [id, email, username, password]).then(() => {
-      console.log('User created successfully');
+      console.log('User ' + username + ' created successfully');
     }).catch((error) => {
       console.error('Error creating user:', error);
       throw error;

@@ -1,27 +1,19 @@
-import express from 'express';
+import express, { json, urlencoded } from 'express';
 // import bodyParser from 'body-parser';
-import { json, urlencoded } from 'body-parser';
 import authRoutes from './routes/auth';
-import userRoutes from './routes/user';
-import { connectToDatabase } from './config/database';
+import { db } from './config/database';
+// import userRoutes from './routes/user';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
 // Connect to the database
-connectToDatabase();
-
+db.connect();
 // Routes
 app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
-
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// app.use('/users', userRoutes);
 
 export default app;

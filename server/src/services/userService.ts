@@ -5,6 +5,9 @@ import { User } from '../models/user';
 import { UserRawData } from '@server/types/db';
 
 export class UserService {
+  constructor() {
+    User.createTable();
+  }
   async createUser(email: string, username: string, password: string): Promise<UserRawData | null> {
     const id = randomUUID();
     await User.create(id, email, username, password);
