@@ -5,7 +5,7 @@ import { hashPassword, comparePassword } from '../utils/password';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import { UserData } from '@server/types/user';
-import { generateToken } from '@server/utils/jwt';
+import { generateToken, verifyToken } from '@server/utils/jwt';
 
 export class AuthController {
   private userService: UserService;
@@ -66,5 +66,30 @@ export class AuthController {
       console.error('Error logging in:', error);
       res.status(500).json({ message: 'Error logging in', error });
     }
-  }
+  };
+  public manualCheck = async (req: Request, res: Response): Promise<void> => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      res.status(401).json({ message: 'No token provided' }).send();
+      return;
+    }
+
+    try {
+      const decoded = verifyToken(token) as { id: string | undefined };
+      if (!decoded || !decoded.id) {
+        res.status(401).json({ message: 'Invalid token' }).send();
+        return;
+      }
+      const user = await this.userService.getUserById(decoded.id);
+      if (!user) {
+        res.status(401).json({ message: 'Invalid token' }).send();
+        return;
+      }
+
+      res.status(200);
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      res.status(401).json({ message: 'Invalid token', error });
+    }
+  };
 }

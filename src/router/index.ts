@@ -12,9 +12,9 @@ const router = createRouter({
   history: createMemoryHistory(),
   routes: routes
 });
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // next({ name: 'auth' });
-  const isAuthenticated = userOps.checkAuth();
+  const isAuthenticated = await userOps.manualCheckAuth();
   // console.log(userOps.getUserData());
   if (isAuthenticated || to.name === 'auth') {
     next();

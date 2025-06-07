@@ -10,10 +10,27 @@ const checkEmail = (email: string) => {
 };
 
 export const userOps = {
-  checkAuth: () => {
+  manualCheckAuth: (): Promise<boolean> => {
     //@todo 换成使用 token 判断
-    userData = userOps.getUserData();
-    return userData !== undefined; // && isAuthenticated === true
+    // userData = userOps.getUserData();
+    // if (!sessionStorage.getItem('token')) return false;
+    return fetch('/api/auth/manualCheck', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+      }
+    })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('Network response was not ok');
+      })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+        return false;
+      });
   },
   getUserData: () => {
     if (userData === undefined) {

@@ -9,7 +9,7 @@ import RegisterDoneCard from "./RegisterDoneCard.vue";
 
 type LoginStepType = "initial" | "login" | "register" | "registerDone";
 
-if (userOps.checkAuth()){
+if (userOps.manualCheckAuth()) {
   router.push({ name: 'home' });
 }
 
