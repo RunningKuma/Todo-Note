@@ -30,5 +30,3 @@ const email = ref("");
   </div>
 </template>
 
-<style scoped>
-</style>

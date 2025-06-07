@@ -1,0 +1,26 @@
+{
+  "name": "auth-server",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "A ",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "sqlite3": "^5.0.2",
+    "jsonwebtoken": "^8.5.1",
+    "bcrypt": "^5.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.4.3",
+    "ts-node": "^10.4.0",
+    "jest": "^27.0.6",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^16.7.10",
+    "@types/express": "^4.17.13"
+  }
+}
