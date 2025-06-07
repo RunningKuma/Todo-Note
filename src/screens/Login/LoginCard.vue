@@ -56,9 +56,9 @@ const handleForm = async () => {
             :errorMessage="errorMessage.password" autofocus required
             @invalid="errorDisplay = true; errorMessage.password = 'Password is required.';" />
           <Button type="submit" label="Login" :loading="loading" />
+          <Button label="Sign up with email" class="w-full" severity="secondary" @click="$emit('stepTo', 'register')"
+            :disabled="loading" />
         </form>
-        <Button label="Sign up with email" class="w-full" severity="secondary" @click="$emit('stepTo', 'register')"
-          :disabled="loading" />
       </div>
     </template>
   </Card>

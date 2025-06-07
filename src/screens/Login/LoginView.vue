@@ -7,14 +7,14 @@ import RegisterCard from "./RegisterCard.vue";
 import InitialCard from "./InitialCard.vue";
 import RegisterDoneCard from "./RegisterDoneCard.vue";
 
-type LoginType = "initial" | "login" | "register" | "registerDone";
+type LoginStepType = "initial" | "login" | "register" | "registerDone";
 
 if (userOps.checkAuth()){
   router.push({ name: 'home' });
 }
 
-const loginStep = ref<LoginType>("initial");
-const stepTo = (new_value: LoginType) => {
+const loginStep = ref<LoginStepType>("initial");
+const stepTo = (new_value: LoginStepType) => {
   loginStep.value = new_value;
 };
 

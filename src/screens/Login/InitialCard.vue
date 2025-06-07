@@ -49,9 +49,9 @@ const handleForm = async () => {
             pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             @invalid="errorDisplay = true; errorMessage = 'Email is required.';" />
           <Button type="submit" label="Continue" :loading="loading" />
+          <Button label="Sign up with email" class="w-full" severity="secondary" @click="$emit('stepTo', 'register')"
+            :disabled="loading" />
         </form>
-        <Button label="Sign up with email" class="w-full" severity="secondary" @click="$emit('stepTo', 'register')"
-          :disabled="loading" />
       </div>
     </template>
   </Card>
