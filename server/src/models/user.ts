@@ -2,56 +2,57 @@
 
 import { Database } from 'sqlite3';
 
-export class User {
-    id: number;
-    username: string;
-    password: string;
+export const User = {
 
-    constructor(id: number, username: string, password: string) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-    }
-
-    static createTable(db: Database): void {
-        db.run(`CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+  createTable: (db: Database): void => {
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY NOT NULL,
+            email TEXT UNIQUE NOT NULL,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
         )`);
-    }
+  },
 
-    static findById(db: Database, id: number, callback: (err: Error | null, user?: User) => void): void {
-        db.get(`SELECT * FROM users WHERE id = ?`, [id], (err, row) => {
-            if (err) {
-                callback(err);
-                return;
-            }
-            if (row) {
-                callback(null, new User(row.id, row.username, row.password));
-            } else {
-                callback(null);
-            }
-        });
-    }
+  findById: (db: Database, id: string, callback: (err: Error | null, user?: User) => void): void => {
+    db.get(`SELECT * FROM users WHERE id = ?`, [id], (err, row) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+      if (row) {
+        callback(null, new User(row.id, row.username, row.password));
+      } else {
+        callback(null);
+      }
+    });
+  }
 
-    static findByUsername(db: Database, username: string, callback: (err: Error | null, user?: User) => void): void {
-        db.get(`SELECT * FROM users WHERE username = ?`, [username], (err, row) => {
-            if (err) {
-                callback(err);
-                return;
-            }
-            if (row) {
-                callback(null, new User(row.id, row.username, row.password));
-            } else {
-                callback(null);
-            }
-        });
-    }
+  static findByUsername(db: Database, username: string, callback: (err: Error | null, user?: User) => void): void {
+    db.get(`SELECT * FROM users WHERE username = ?`, [username], (err, row) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+      if (row) {
+        callback(null, new User(row.id, row.username, row.password));
+      } else {
+        callback(null);
+      }
+    });
+  }
 
-    static create(db: Database, username: string, password: string, callback: (err: Error | null) => void): void {
-        db.run(`INSERT INTO users (username, password) VALUES (?, ?)`, [username, password], function (err) {
-            callback(err);
-        });
+  static create(db: Database, username: string, password: string, callback: (err: Error | null) => void): void {
+    try {
+      db.run(`INSERT INTO users (, username, password) VALUES (?, ?)`, [username, password], function (err) {
+        callback(err);
+      });
+    } catch (error) {
+      //@todo implement no table error handling and others
+      console.error('Error creating user:', error);
+      throw error;
+      if (error.code === 'SQLITE_CONSTRAINT') {
+        callback(new Error('Username already exists'));
+      }
     }
+  }
 }
