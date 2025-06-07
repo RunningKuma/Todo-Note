@@ -45,7 +45,9 @@ const handleForm = async () => {
       <div class="flex flex-col gap-4">
         <form @submit.prevent="handleForm" class="flex flex-col gap-4">
           <LoginInput id="email" placeholder="example@example.com" icon="pi pi-at" v-model="email"
-            :errorDisplay="errorDisplay" :errorMessage="errorMessage" />
+            :errorDisplay="errorDisplay" :errorMessage="errorMessage" required
+            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            @invalid="errorDisplay = true; errorMessage = 'Email is required.';" />
           <Button type="submit" label="Continue" :loading="loading" />
         </form>
         <Button label="Sign up with email" class="w-full" severity="secondary" @click="$emit('stepTo', 'register')"

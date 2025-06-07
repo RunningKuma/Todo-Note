@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Button from "primevue/button";
 import Card from "primevue/card";
 import Divider from "primevue/divider";
@@ -10,11 +10,11 @@ import LoginInput from "./components/LoginInput.vue";
 
 defineEmits(['stepTo']);
 
-const email = defineModel();
+const email = defineModel<string>();
 const loading = ref(false);
 
 const errorDisplay = ref(false);
-const errorMessage = ref("");
+const errorMessage = ref<{ email: string, password: string }>({ email: "", password: "" });
 
 const password = ref("");
 
@@ -23,8 +23,9 @@ const handleForm = async () => {
   loading.value = true;
 
   errorDisplay.value = false;
-  errorMessage.value = "";
+  errorMessage.value = { email: "", password: "" };
 
+  //@todo fix type
   const result = await userOps.login(email.value, password.value);
   console.log(result);
 
@@ -34,7 +35,7 @@ const handleForm = async () => {
   } else {
     loading.value = false;
     errorDisplay.value = true;
-    errorMessage.value = result.message || "An error occurred. Please try again.";
+    errorMessage.value.password = result.message || "An error occurred. Please try again.";
   }
 };
 </script>
@@ -51,9 +52,11 @@ const handleForm = async () => {
       <div class="flex flex-col gap-4">
         <form @submit.prevent="handleForm" class="flex flex-col gap-4">
           <LoginInput id="email" placeholder="example@example.com" icon="pi pi-at" v-model="email"
-            :errorDisplay="errorDisplay" :errorMessage="errorMessage" />
+            :errorDisplay="errorDisplay" :errorMessage="errorMessage.email" required
+            @invalid="errorDisplay = true; errorMessage.email = 'Email is required.';" />
           <LoginInput id="password" icon="pi pi-key" v-model="password" type="password" :errorDisplay="errorDisplay"
-            :errorMessage="errorMessage" autofocus />
+            :errorMessage="errorMessage.password" autofocus required
+            @invalid="errorDisplay = true; errorMessage.password = 'Password is required.';" />
           <Button type="submit" label="Login" :loading="loading" />
         </form>
         <Button label="Sign up with email" class="w-full" severity="secondary" @click="$emit('stepTo', 'register')"
