@@ -46,6 +46,7 @@ export const userOps = {
     return _userData;
   },
   getLoginOptions: async (email: string): Promise<{ success: boolean, message: string }> => {
+    // 我也不知道在写什么了后来者再优化吧()
     const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) })
       .catch(error => {
         console.error('There was a problem with the fetch operation:', error);
@@ -79,9 +80,28 @@ export const userOps = {
     }
     return { success: false, message: response.statusText };
   },
-  register: async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return { success: true, message: 'Registration successful. Please log in.' };
+  register: async (email: string, username: string, password: string) => {
+    const response = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, username, password }) })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+        return { status: 600, success: false, statusText: 'Network error. Please try again later.' } as unknown as Response;
+      });
+    // 检查响应类型
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return {
+        success: false,
+        message: '服务器响应格式错误'
+      };
+    }
+    const { message } = (await response.json().catch(() => { return { message: 'Invalid respond' }; }));
+    if (response.status === 201) {
+      return { success: true, message };
+    }
+    if (response.status === 401) {
+      return { success: false, message };
+    }
+    return { success: false, message: response.statusText };
   },
   logout: () => {
     _userData = undefined;

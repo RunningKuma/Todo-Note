@@ -35,7 +35,7 @@ const handleForm = async () => {
     return;
   }
 
-  const result = await userOps.register(email.value);
+  const result = await userOps.register(email.value, signupData.value.username, signupData.value.password);
   if (result.success) {
     loading.value = false;
     emit('stepTo', 'registerDone');
