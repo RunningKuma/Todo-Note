@@ -48,15 +48,20 @@ export const userOps = {
     }
     return userData;
   },
-  getLoginOptions: async (email: string) => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (!checkEmail(email)) {
-      return { success: false, message: 'Invalid email format.' };
-    } else if (email === "test@test.com") {
-      return { success: true };
-    } else {
-      return { success: false, message: 'Account not found. Please sign up.' };
-    }
+  getLoginOptions: async (email: string): Promise<{ success: boolean, message: string }> => {
+    return await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) })
+      .then(response => {
+        if (response.status === 201) {
+          return { success: true, message: '' };
+        }
+        if (response.status === 401) {
+          return { success: false, message: 'Account not found. Please sign up.' };
+        }
+        return { success: false, message: response.statusText };
+      }).catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+        return { success: false, message: 'Network error. Please try again later.' };
+      });
   },
   login: async (email: string, password: string) => {
     await new Promise(resolve => setTimeout(resolve, 1000));

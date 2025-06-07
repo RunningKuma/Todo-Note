@@ -42,10 +42,15 @@ export class AuthController {
     try {
       const user = await this.userService.getUserByEmail(email);
       if (!user) {
-        res.status(401).json({ message: 'Invalid credentials' }).send();
+        res.status(401).json({ message: 'User not found' }).send();
         return;
       }
 
+      // getLoginOptions
+      if (password === undefined) {
+        res.status(201).send();
+        return;
+      }
       const isMatch = await comparePassword(password, user.password);
       if (!isMatch) {
         res.status(401).json({ message: 'Invalid credentials' }).send();

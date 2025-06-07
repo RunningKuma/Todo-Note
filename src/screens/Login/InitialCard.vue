@@ -20,7 +20,7 @@ const handleForm = async () => {
 
   errorDisplay.value = false;
   errorMessage.value = "";
-  const result = await userOps.getLoginOptions(email.value);
+  const result = await userOps.getLoginOptions(email.value as string);
   if (result.success) {
     loading.value = false;
     emit('stepTo', 'login');
