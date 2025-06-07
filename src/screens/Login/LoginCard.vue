@@ -26,7 +26,7 @@ const handleForm = async () => {
   errorMessage.value = { email: "", password: "" };
 
   //@todo fix type
-  const result = await userOps.login(email.value, password.value);
+  const result = await userOps.login(email.value as string, password.value);
   console.log(result);
 
   if (result.success) {
@@ -51,7 +51,8 @@ const handleForm = async () => {
         <form @submit.prevent="handleForm" class="flex flex-col gap-4">
           <LoginInput id="email" placeholder="example@example.com" icon="pi pi-at" v-model="email"
             :errorDisplay="errorDisplay" :errorMessage="errorMessage.email" required
-            @invalid="errorDisplay = true; errorMessage.email = 'Email is required.';" />
+            @invalid="errorDisplay = true; errorMessage.email = 'Email is required.';"
+            @input="$emit('stepTo', 'initial')" />
           <LoginInput id="password" icon="pi pi-key" v-model="password" type="password" :errorDisplay="errorDisplay"
             :errorMessage="errorMessage.password" autofocus required
             @invalid="errorDisplay = true; errorMessage.password = 'Password is required.';" />

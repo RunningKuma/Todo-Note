@@ -53,7 +53,7 @@ export class AuthController {
       }
       const isMatch = await comparePassword(password, user.password);
       if (!isMatch) {
-        res.status(401).json({ message: 'Invalid credentials' }).send();
+        res.status(401).json({ message: 'Incorrect password.' }).send();
         return;
       }
 
@@ -66,10 +66,10 @@ export class AuthController {
 
       //@todo implement todos query
 
-      res.status(200).json({ id: user.id, email: user.email, username: user.username, token, todo: [] } as UserData);
+      res.status(200).json({ userData: { id: user.id, email: user.email, username: user.username, token, todo: [] } as UserData, message: '' }).send();
     } catch (error) {
       console.error('Error logging in:', error);
-      res.status(500).json({ message: 'Error logging in', error });
+      res.status(500).json({ message: 'Error logging in', error }).send();
     }
   };
   public manualCheck = async (req: Request, res: Response): Promise<void> => {
@@ -91,10 +91,10 @@ export class AuthController {
         return;
       }
 
-      res.status(200);
+      res.status(200).send();
     } catch (error) {
       console.error('Error verifying token:', error);
-      res.status(401).json({ message: 'Invalid token', error });
+      res.status(401).json({ message: 'Invalid token', error }).send();
     }
   };
 }

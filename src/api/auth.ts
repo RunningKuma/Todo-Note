@@ -1,8 +1,7 @@
 import { testUserData } from "./constants/test";
 import type { UserData } from "./types/user";
 
-let isAuthenticated: boolean;
-let userData: UserData | undefined;
+let _userData: UserData | undefined;
 
 const checkEmail = (email: string) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,7 +22,7 @@ export const userOps = {
     })
       .then(response => {
         if (response.ok) {
-          return response.json();
+          return true;
         }
         throw new Error('Network response was not ok');
       })
@@ -33,58 +32,60 @@ export const userOps = {
       });
   },
   getUserData: () => {
-    if (userData === undefined) {
+    if (_userData === undefined) {
       const storedData = sessionStorage.getItem('userData');
       if (storedData) {
-        userData = JSON.parse(storedData);
-        isAuthenticated = true;
+        _userData = JSON.parse(storedData);
       }
       else {
-        userData = undefined;
-        isAuthenticated = false;
+        _userData = undefined;
         //@todo use toast instead
         console.warn('无法在本地找到用户数据，请检查登录状态.');
       }
     }
-    return userData;
+    return _userData;
   },
   getLoginOptions: async (email: string): Promise<{ success: boolean, message: string }> => {
-    return await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) })
-      .then(response => {
-        if (response.status === 201) {
-          return { success: true, message: '' };
-        }
-        if (response.status === 401) {
-          return { success: false, message: 'Account not found. Please sign up.' };
-        }
-        return { success: false, message: response.statusText };
-      }).catch(error => {
+    const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) })
+      .catch(error => {
         console.error('There was a problem with the fetch operation:', error);
-        return { success: false, message: 'Network error. Please try again later.' };
+        return { status: 600, success: false, statusText: 'Network error. Please try again later.' } as unknown as Response;
       });
+    const { message } = (await response.json().catch(() => { return { message: '' }; }));
+    if (response.status === 201) {
+      return { success: true, message };
+    }
+    if (response.status === 401) {
+      return { success: false, message };
+    }
+    return { success: false, message: response.statusText };
   },
   login: async (email: string, password: string) => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (!checkEmail(email)) {
-      return { success: false, message: 'Invalid email format.' };
-    } else if (email !== "test@test.com") {
-      return { success: false, message: 'Account not found. Please sign up.' };
-    } else if (password !== "123456") {
-      return { success: false, message: 'Incorrect password.' };
-    }
+    const response = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+        return { status: 600, success: false, statusText: 'Network error. Please try again later.' } as unknown as Response;
+      });
+    const { userData, message } = (await response.json().catch(() => { return { message: '' }; })) as { userData: UserData, message: string };
+    if (response.status === 200) {
+      _userData = userData;
+      sessionStorage.setItem('token', userData.token!);
+      sessionStorage.setItem('userData', JSON.stringify(userData));
 
-    userData = testUserData;
-    isAuthenticated = true;
-    sessionStorage.setItem('userData', JSON.stringify(userData));
-    return { success: true };
+      return { success: true, message };
+    }
+    if (response.status === 401) {
+      return { success: false, message };
+    }
+    return { success: false, message: response.statusText };
   },
   register: async () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     return { success: true, message: 'Registration successful. Please log in.' };
   },
   logout: () => {
-    userData = undefined;
-    isAuthenticated = false;
+    _userData = undefined;
+    sessionStorage.removeItem('token');
     sessionStorage.removeItem('userData');
   }
 };
