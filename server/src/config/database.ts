@@ -33,6 +33,26 @@ class DatabaseService {
   }
 
   /**
+   * 执行 SQL 语句
+   * @param sql SQL 语句
+   * @param params 参数数组
+   */
+  async run(sql: string, params: any[] = []): Promise<void> {
+    if (!this.db) {
+      db.connect();
+    }
+    return new Promise((resolve, reject) => {
+      this.db!.run(sql, params, function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
+
+  /**
    * 执行查询并返回多行结果
    */
   async query<T>(sql: string, params: any[] = []): Promise<T[]> {
@@ -89,6 +109,7 @@ class DatabaseService {
   /**
    * 开始事务
    */
+  //@todo ？这些是干什么的？
   async beginTransaction(): Promise<void> {
     if (!this.db) {
       throw new Error('数据库未连接');

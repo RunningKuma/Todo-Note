@@ -1,10 +1,12 @@
 // filepath: sqlite-auth-server/src/models/user.ts
 
-import { Database } from 'sqlite3';
+import { db } from '@server/config/database';
+import { UserRawData } from '@server/types/db';
 
 export const User = {
 
-  createTable: (db: Database): void => {
+  createTable: (): void => {
+  //@todo implement real table
     db.run(`CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY NOT NULL,
             email TEXT UNIQUE NOT NULL,
@@ -13,46 +15,53 @@ export const User = {
         )`);
   },
 
-  findById: (db: Database, id: string, callback: (err: Error | null, user?: User) => void): void => {
-    db.get(`SELECT * FROM users WHERE id = ?`, [id], (err, row) => {
-      if (err) {
-        callback(err);
-        return;
-      }
-      if (row) {
-        callback(null, new User(row.id, row.username, row.password));
-      } else {
-        callback(null);
-      }
-    });
-  }
-
-  static findByUsername(db: Database, username: string, callback: (err: Error | null, user?: User) => void): void {
-    db.get(`SELECT * FROM users WHERE username = ?`, [username], (err, row) => {
-      if (err) {
-        callback(err);
-        return;
-      }
-      if (row) {
-        callback(null, new User(row.id, row.username, row.password));
-      } else {
-        callback(null);
-      }
-    });
-  }
-
-  static create(db: Database, username: string, password: string, callback: (err: Error | null) => void): void {
-    try {
-      db.run(`INSERT INTO users (, username, password) VALUES (?, ?)`, [username, password], function (err) {
-        callback(err);
-      });
-    } catch (error) {
-      //@todo implement no table error handling and others
+  create: (id: string, email: string, username: string, password: string): Promise<void> => {
+    return db.run(`INSERT INTO users (id, email, username, password) VALUES (?, ?, ?, ?)`, [id, email, username, password]).then(() => {
+      console.log('User created successfully');
+    }).catch((error) => {
       console.error('Error creating user:', error);
       throw error;
-      if (error.code === 'SQLITE_CONSTRAINT') {
-        callback(new Error('Username already exists'));
-      }
-    }
-  }
-}
+    });
+  },
+
+  findUser: {
+    findById: (id: string): Promise<UserRawData | null> => {
+      return db.queryOne<UserRawData>(`SELECT * FROM users WHERE id = ?`, [id]).then((row) => {
+        if (row) {
+          return { id: row.id, email: row.email, username: row.username, password: row.password } as UserRawData;
+        } else {
+          return null;
+        }
+      }).catch((error) => {
+        console.error('Error finding user by ID:', error);
+        throw error;
+      });
+    },
+
+    findByUsername: (username: string): Promise<UserRawData | null> =>
+      db.queryOne<UserRawData>(`SELECT * FROM users WHERE username = ?`, [username]).then((row) => {
+        if (row) {
+          return { id: row.id, email: row.email, username: row.username, password: row.password } as UserRawData;
+        } else {
+          return null;
+        }
+      }).catch((error) => {
+        console.error('Error finding user by username:', error);
+        throw error;
+      }),
+
+    findByEmail: (email: string): Promise<UserRawData | null> =>
+      db.queryOne<UserRawData>(`SELECT * FROM users WHERE email = ?`, [email]).then((row) => {
+        if (row) {
+          return { id: row.id, email: row.email, username: row.username, password: row.password } as UserRawData;
+        } else {
+          return null;
+        }
+      }).catch((error) => {
+        console.error('Error finding user by email:', error);
+        throw error;
+      }),
+  },
+
+
+};
