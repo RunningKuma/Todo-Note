@@ -6,6 +6,9 @@ import Skeleton from "primevue/skeleton";
 import { ref } from "vue";
 import { userOps } from "@/api/auth";
 import LoginInput from "./components/LoginInput.vue";
+import router from "@/router";
+
+const isDev = import.meta.env.DEV;
 
 const emit = defineEmits(['stepTo']);
 const email = defineModel<string>();
@@ -51,6 +54,8 @@ const handleForm = async () => {
           <Button type="submit" label="Continue" :loading="loading" />
           <Button label="Sign up with email" class="w-full" severity="secondary" @click="$emit('stepTo', 'register')"
             :disabled="loading" />
+          <Button v-if="isDev" label="Skip login" class="w-full" severity="secondary"
+            @click="router.push({ path: '/' });" />
         </form>
       </div>
     </template>
