@@ -24,7 +24,7 @@
 使用以下命令安装依赖：
 
 ```
-npm install
+pnpm install
 ```
 
 ## 启动服务器
@@ -32,9 +32,5 @@ npm install
 使用以下命令启动服务器：
 
 ```
-npm start
+pnpm dev
 ```
-
-## 贡献
-
-欢迎提交问题和拉取请求！

@@ -5,7 +5,15 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "ts-node",
+			"type": "msedge",
+			"request": "launch",
+			"name": "web with server",
+			"url": "http://localhost:1420",
+			"webRoot": "${workspaceFolder}",
+			"preLaunchTask": "npm: dev"
+		},
+		{
+			"name": "server only",
 			"type": "node",
 			"request": "launch",
 			"args": [
@@ -26,10 +34,10 @@
 		{
 			"type": "msedge",
 			"request": "launch",
-			"name": "Web Only",
+			"name": "web only",
 			"url": "http://localhost:1420",
 			"webRoot": "${workspaceFolder}",
-			"preLaunchTask": "npm: dev"
+			"preLaunchTask": "npm: dev:client"
 		},
 		{
 			"type": "lldb",

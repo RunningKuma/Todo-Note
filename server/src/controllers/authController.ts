@@ -24,15 +24,15 @@ export class AuthController {
 
     try {
       const userData = await this.userService.createUser(email, username, hashedPassword);
-      res.status(201).json({ message: 'User registered successfully', user: userData });
+      res.status(201).json({ message: 'User registered successfully', user: userData }).send();
     } catch (error) {
       console.error('Error registering user:', error);
-      //@todo implement error type
-      if ((error as { code: string }).code === '"SQLITE_CONSTRAINT"') {
+      //@dtodo implement error type
+      if ((error as { code: string }).code === 'SQLITE_CONSTRAINT') {
         res.status(400).json({ message: 'User already exists' }).send();
         return;
       }
-      res.status(500).json({ message: 'Error registering user', error });
+      res.status(500).json({ message: 'Error registering user: ' + error }).send();
     }
   };
 

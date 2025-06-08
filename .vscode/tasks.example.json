@@ -8,6 +8,22 @@
 			"label": "npm: dev",
 			"detail": "vite",
 			"isBackground": true
+		},
+		{
+			"type": "npm",
+			"script": "dev:server",
+			"problemMatcher": [],
+			"label": "npm: dev:server",
+			"detail": "vite",
+			"isBackground": true
+		},
+		{
+			"type": "npm",
+			"script": "dev:client",
+			"problemMatcher": [],
+			"label": "npm: dev:client",
+			"detail": "vite",
+			"isBackground": true
 		}
 	]
 }
