@@ -9,6 +9,7 @@
 }
 @theme {
   --spacing-sidebar: 120px;
+  --spacing-sidebar-tabh: 35px
 }
 
 @supports (font-variation-settings: normal) {

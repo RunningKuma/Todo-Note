@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import router from '@/router';
 import { Button } from 'primevue';
-import { RouteLocationRaw } from 'vue-router';
+import { RouteLocationRaw, RouterLink } from 'vue-router';
 
 export interface SideBarTabInterface {
   name: string,
   icon: string,
   route: RouteLocationRaw,
 }
-const { name, icon, route } = defineProps<SideBarTabInterface>();
+interface _SidebarTabProps extends SideBarTabInterface {
+  isCurrent: boolean
+}
+const { name, icon, route, isCurrent } = defineProps<_SidebarTabProps>();
 </script>
 <template>
-  <Button variant="text" size="small" class="block! w-full!" :name="name" :icon="icon"
-    @click="router.push(route)"></Button>
+  <RouterLink variant="text" size="small" class="block relative place-items-center w-full! h-sidebar-tabh p-1.5 z-10"
+    :name="name" :icon="icon" :to="route">
+    <i :class="[icon, isCurrent ? 'text-white!' : '', 'w-full h-fit text-lg text-center']" />
+  </RouterLink>
 </template>

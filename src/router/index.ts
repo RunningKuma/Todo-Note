@@ -8,10 +8,10 @@ import Search from "@/screens/Home/Search/Search.vue";
 
 const routes: readonly RouteRecordRaw[] = [
   {
-    path: '/', name: 'home', component: HomeView, children: [
+    path: '/', name: '_home', component: HomeView, children: [
       {
         path: '',
-        name: 'overview',
+        name: 'home',
         component: Overview
       },
       {

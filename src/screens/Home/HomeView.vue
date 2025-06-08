@@ -11,21 +11,14 @@ const userData = userOps.getUserData();
 
 const visible = ref(true);
 
-const handleLogout = () => {
-  userOps.logout();
-  router.push({name: 'auth'});
-};
+
 
 </script>
 
 <template>
   <div :class="['container', visible ? 'ml-sidebar' : '']">
-    <h1>Welcome to Tauri + Vue + PrimeVue</h1>
-    <h2>You are login as {{ userData?.username }}</h2>
     <SideBar v-model="visible" :username="userData.username"></SideBar>
     <div>
-      <!-- <Button class="block" label="Logout" severity="secondary" @click="handleLogout" />
-      <span>{{ displayMessage }}</span> -->
       <RouterView />
       <DrawerTrigger v-model="visible" />
 
