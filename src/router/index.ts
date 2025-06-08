@@ -3,9 +3,24 @@ import { createMemoryHistory, createRouter, type RouteRecordRaw } from "vue-rout
 import HomeView from '@/screens/Home/HomeView.vue';
 import LoginView from '@/screens/Login/LoginView.vue';
 import { userOps } from "@/api/auth";
+import Overview from "@/screens/Home/Overview/Overview.vue";
+import Search from "@/screens/Home/Search/Search.vue";
 
 const routes: readonly RouteRecordRaw[] = [
-  { path: '/', name: 'home', component: HomeView },
+  {
+    path: '/', name: 'home', component: HomeView, children: [
+      {
+        path: '',
+        name: 'overview',
+        component: Overview
+      },
+      {
+        path: 'search',
+        name: 'search',
+        component: Search
+      },
+    ]
+  },
   { path: '/auth', name: 'auth', component: LoginView },
 ];
 const router = createRouter({

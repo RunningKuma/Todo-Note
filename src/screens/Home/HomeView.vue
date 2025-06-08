@@ -24,8 +24,9 @@ const handleLogout = () => {
     <h2>You are login as {{ userData?.username }}</h2>
     <SideBar v-model="visible" :username="userData.username"></SideBar>
     <div>
-      <Button class="block" label="Logout" severity="secondary" @click="handleLogout" />
-      <span>{{ displayMessage }}</span>
+      <!-- <Button class="block" label="Logout" severity="secondary" @click="handleLogout" />
+      <span>{{ displayMessage }}</span> -->
+      <RouterView />
       <DrawerTrigger v-model="visible" />
 
 

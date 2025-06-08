@@ -8,7 +8,7 @@
   font-feature-settings: 'liga' 1, 'calt' 1;
 }
 @theme {
-  --spacing-sidebar: 120px
+  --spacing-sidebar: 120px;
 }
 
 @supports (font-variation-settings: normal) {

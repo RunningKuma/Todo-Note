@@ -1,20 +1,29 @@
 <script setup lang="ts">
 import { Avatar, Drawer } from 'primevue';
+import SideBarTab, { SideBarTabInterface } from './components/SideBarTab.vue';
 const visible = defineModel<boolean>();
 
 const { username } = defineProps<{ username: string }>()
 
-const tabs: { icon: string, name: string, route: string }[] = [];
+const tabs: SideBarTabInterface[] = [
+  { name: 'search', icon: 'pi pi-search', route: { name: 'search' } },
+  { name: 'overview', icon: 'pi pi-home', route: { name: 'overview' } },
+  // { name: 'note', icon: 'pi pi-pen', route: { name: 'note' } },
+];
 </script>
 
 <template>
   <Drawer v-model:visible="visible" :modal="false" :dismissable="false"
-    class="w-sidebar! static! px-2 py-4 flex flex-col items-center">
+    class="w-sidebar! static! px-2 py-4 flex flex-col items-center bg-primary-100!">
     <template #container="{ }"><!-- closeCallback -->
       <h2 class="text-lg text-center font-bold">Todo-Note</h2>
+      <div class="w-full relative">
+        <SideBarTab v-bind:key="tab.name" v-for="tab in tabs" :name="tab.name" :icon="tab.icon" :route="tab.route">
+        </SideBarTab>
+      </div>
       <div class="mt-auto flex flex-col items-center gap-2">
         <p class="font-bold">{{ username }}</p>
-        <Avatar icon="pi pi-user" size="xlarge" />
+        <Avatar icon="pi pi-user" size="xlarge" shape="circle" />
       </div>
     </template>
 
