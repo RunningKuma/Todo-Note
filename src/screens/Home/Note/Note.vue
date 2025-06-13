@@ -1,126 +1,209 @@
+<template>
+  <div class="vditor-diff-demo">
+    <h3>Vditor 差分算法演示</h3>
+
+    <!-- 编辑器容器 -->
+    <div ref="vditorElement" class="vditor-container"></div>
+
+    <!-- 控制面板 -->
+    <div class="controls-panel">
+      <Button label="保存版本" @click="saveCurrentVersion" />
+      <Button label="刷新版本历史" @click="refreshVersionHistory" />
+      <Button label="比较版本" @click="showDiffComparison" />
+    </div>
+
+    <!-- 版本历史 -->
+    <div class="version-history">
+      <h4>版本历史</h4>
+      <div v-for="version in versions" :key="version.id" class="version-item">
+        <span>{{ noteUtils.formatTimestamp(version.timestamp) }}</span>
+        <Button label="查看" size="small" @click="viewVersion(version)" />
+        <Button label="比较" size="small" severity="secondary" @click="selectForComparison(version)" />
+      </div>
+    </div>
+
+    <!-- 差异对比 -->
+    <div v-if="diffHtml" class="diff-display">
+      <h4>版本差异</h4>
+      <div class="diff-content" v-html="diffHtml"></div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
-import Vditor from 'vditor';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { Button } from 'primevue';
+import { noteDiffEngine, type NoteVersion } from '@/api/note/note';
 import 'vditor/dist/index.css';
+import { noteUtils } from '@/api/utils/note';
+import { throttle } from '@/api/utils/perform';
 
-//@todo implement I18n
-// const { t } = useI18n();
+const vditorElement = ref<HTMLDivElement | undefined>();
+const versions = ref<NoteVersion[]>([]);
+const diffHtml = ref('');
+const selectedVersions = ref<NoteVersion[]>([]);
 
-const vditorRef = ref<Vditor | null>(null);
+const noteId = ref('demo-note-001');
 
-// 生成简单的哈希值
-const generateHash = (str: string): string => {
-  let hash = 0;
-  if (str.length === 0) return hash.toString();
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
+onMounted(async () => {
+  if (vditorElement.value) {
+    await noteDiffEngine.initVditor(vditorElement.value, {
+      placeholder: 'Start Typing Here...',
+      input: (value: string) => {
+        // 可以在这里添加自动保存版本的逻辑
+        throttle(() => {
+          noteDiffEngine.saveVersion(noteId.value, value);
+        }, 30 * 1000)(); // 每30秒保存一次版本
+        console.log('内容已变更:', value.length, '字符');
+
+      }
+    });
   }
-  return Math.abs(hash).toString(36);
-};
-
-onMounted(() => {
-  vditorRef.value = new Vditor('vditor', {
-    height: 400,
-    mode: 'wysiwyg',
-    theme: 'classic',
-    icon: 'ant',
-    placeholder: '开始记录你的想法...',
-    cache: {
-      enable: true,
-      id: 'vditor-note',
-    },
-    counter: {
-      enable: true,
-      type: 'markdown',
-    },
-    toolbarConfig: {
-      pin: true,
-      hide: false,
-    },
-    preview: {
-      delay: 500,
-      mode: 'both',
-      hljs: {
-        enable: true,
-        lineNumber: true,
-        style: 'github',
-      },
-    },
-    upload: {
-      url: '/api/upload',
-      accept: 'image/*,.pdf,.doc,.docx',
-      multiple: true,
-      max: 10 * 1024 * 1024, // 10MB
-      filename: (name: string) => {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const hash = generateHash(name + timestamp);
-        const ext = name.split('.').pop();
-        return `${name.split('.')[0]}_${timestamp}_${hash}.${ext}`;
-      },
-      success(editor, msg) {
-        try {
-          const res = JSON.parse(msg);
-          if (res.data && res.data.url) {
-            return res.data.url;
-          }
-          return '';
-        } catch (e) {
-          console.error('Upload response parsing error:', e);
-          return '';
-        }
-      },
-      error(msg) {
-        console.error('Upload error:', msg);
-      },
-    },
-    after: () => {
-      console.log('Vditor initialized');
-    },
-    input: (value) => {
-      //! 这里传入完整内容 @RunningKuma
-      console.log('Content changed:', value);
-    },
-    focus: () => {
-      console.log('Editor focused');
-    },
-    blur: () => {
-      console.log('Editor blurred');
-    },
-  });
 });
 
 onUnmounted(() => {
-  vditorRef.value?.destroy();
+  noteDiffEngine.destroy();
 });
 
-// 获取内容
-const getContent = () => {
-  return vditorRef.value?.getValue();
+/**
+ * 保存当前版本
+ */
+const saveCurrentVersion = () => {
+  const content = noteDiffEngine.getCurrentContent();
+  noteDiffEngine.saveVersion(noteId.value, content);
+
+  // 刷新版本列表
+  versions.value = noteDiffEngine.getVersions(noteId.value);
+
+  console.log('版本已保存:', content.substring(0, 50) + '...');
 };
 
-// 设置内容
-const setContent = (content: string) => {
-  vditorRef.value?.setValue(content);
+/**
+ * 显示版本历史
+ */
+const refreshVersionHistory = () => {
+  versions.value = noteDiffEngine.getVersions(noteId.value);
 };
 
-// 插入内容
-const insertContent = (content: string) => {
-  vditorRef.value?.insertValue(content);
+/**
+ * 查看特定版本
+ */
+const viewVersion = (version: NoteVersion) => {
+  noteDiffEngine.setContent(version.content);
 };
 
-// 导出方法供父组件使用
-defineExpose({
-  getContent,
-  setContent,
-  insertContent,
-  vditor: vditorRef,
-});
+/**
+ * 选择版本进行比较
+ */
+const selectForComparison = (version: NoteVersion) => {
+  if (selectedVersions.value.length < 2) {
+    selectedVersions.value.push(version);
+  }
+
+  if (selectedVersions.value.length === 2) {
+    compareTwoVersions();
+  }
+};
+
+/**
+ * 比较两个版本
+ */
+const compareTwoVersions = () => {
+  if (selectedVersions.value.length === 2) {
+    const [v1, v2] = selectedVersions.value;
+    const diffs = noteDiffEngine.calculateDiff(v1.content, v2.content);
+    diffHtml.value = noteDiffEngine.generateDiffHtml(diffs);
+
+    // 显示差异统计
+    const stats = noteUtils.getDiffStats(diffs);
+    console.log('差异统计:', stats);
+
+    // 重置选择
+    selectedVersions.value = [];
+  }
+};
+
+/**
+ * 显示差异比较
+ */
+const showDiffComparison = () => {
+  const versionList = noteDiffEngine.getVersions(noteId.value);
+  if (versionList.length >= 2) {
+    const latest = versionList[versionList.length - 1];
+    const previous = versionList[versionList.length - 2];
+
+    const diffs = noteDiffEngine.calculateDiff(previous.content, latest.content);
+    diffHtml.value = noteDiffEngine.generateDiffHtml(diffs);
+
+    // 计算相似度
+    const similarity = noteUtils.calculateSimilarity(previous.content, latest.content);
+    console.log('版本相似度:', (similarity * 100).toFixed(2) + '%');
+  }
+};
+
 </script>
 
-<template>
-  <div class="size-full">
-    <div id="vditor" class="size-full"></div>
-  </div>
-</template>
+<style scoped>
+.vditor-diff-demo {
+  padding: 1rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.vditor-container {
+  margin-bottom: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+}
+
+.controls-panel {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.version-history {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+}
+
+.version-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.version-item:last-child {
+  border-bottom: none;
+}
+
+.diff-display {
+  padding: 1rem;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+}
+
+.diff-content {
+  font-family: monospace;
+  font-size: 0.875rem;
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid #e2e8f0;
+}
+
+:deep(.diff-delete) {
+  background-color: #fef2f2;
+  color: #991b1b;
+  text-decoration: line-through;
+}
+
+:deep(.diff-insert) {
+  background-color: #f0fdf4;
+  color: #166534;
+}
+</style>
