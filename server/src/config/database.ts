@@ -90,13 +90,12 @@ class DatabaseService {
       });
     });
   }
-
   /**
    * 执行更新操作
    */
   async execute(sql: string, params: any[] = []): Promise<number> {
     if (!this.db) {
-      this.connect();
+      await this.connect();
     }
     return new Promise((resolve, reject) => {
       this.db!.run(sql, params, function (err) {

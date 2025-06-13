@@ -1,16 +1,29 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { verifyToken } from '../utils/jwt';
 
-//@todo implement jwt secret in env
-const secretKey = process.env.JWT_SECRET || 'your_secret_key';
+export interface AuthenticatedRequest extends Request {
+  user?: { id: string };
+}
 
-export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
+export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   const token = req.headers['authorization']?.split(' ')[1];
-  if (!token) return res.sendStatus(401);
+  
+  if (!token) {
+    res.status(401).json({ success: false, message: 'No token provided' });
+    return;
+  }
 
-  jwt.verify(token, secretKey, (err: any, user: any) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
+  try {
+    const decoded = verifyToken(token) as { id: string };
+    if (!decoded || !decoded.id) {
+      res.status(401).json({ success: false, message: 'Invalid token' });
+      return;
+    }
+    
+    req.user = { id: decoded.id };
     next();
-  });
+  } catch (error) {
+    res.status(403).json({ success: false, message: 'Token verification failed' });
+    return;
+  }
 };
