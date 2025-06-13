@@ -1,4 +1,4 @@
-import Vditor from 'vditor';
+import Vditor, { IOptions } from 'vditor';
 import diff from 'fast-diff';
 import { throttle } from '../utils/perform';
 
@@ -32,7 +32,7 @@ export class NoteDiffEngine {
   /**
    * 初始化 Vditor 编辑器
    */
-  async initVditor(element: HTMLElement, options?: Record<string, unknown>): Promise<Vditor> {
+  async initVditor(element: HTMLElement, options?: IOptions): Promise<Vditor> {
     this.vditor = new Vditor(element, {
       mode: 'ir',
       height: 400,
@@ -45,6 +45,11 @@ export class NoteDiffEngine {
       },
       input: (value: string) => {
         this.handleContentChange(value);
+      },
+      blur: (value: string) => {
+        // 失去焦点时手动保存一次
+        // @todo use real user
+        this.saveVersion(this.noteId || '', value, '当前用户');
       },
       ...options
     });

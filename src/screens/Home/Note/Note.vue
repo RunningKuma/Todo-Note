@@ -59,9 +59,10 @@ watch(
 onMounted(async () => {
   if (vditorElement.value) {
     await noteDiffEngine.initVditor(vditorElement.value, {
+      height: '500px',
       placeholder: 'Start Typing Here...',
     });
-    noteDiffEngine.setAutoSave(true, 2 * 1000);
+    noteDiffEngine.setAutoSave(true, 2 * 60 * 1000);
   }
 });
 
@@ -74,6 +75,7 @@ onUnmounted(() => {
  */
 const saveCurrentVersion = () => {
   const content = noteDiffEngine.getCurrentContent();
+  // @todo use real user
   noteDiffEngine.saveVersion(noteId.value, content);
 
   // 刷新版本列表
