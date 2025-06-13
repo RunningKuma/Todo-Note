@@ -5,6 +5,7 @@ import LoginView from '@/screens/Login/LoginView.vue';
 import { userOps } from "@/api/auth";
 import Overview from "@/screens/Home/Overview/Overview.vue";
 import Search from "@/screens/Home/Search/Search.vue";
+import Note from "@/screens/Home/Note/Note.vue";
 
 const routes: readonly RouteRecordRaw[] = [
   {
@@ -19,6 +20,11 @@ const routes: readonly RouteRecordRaw[] = [
         name: 'search',
         component: Search
       },
+      {
+        path: 'note',
+        name: 'note',
+        component: Note
+      },
     ]
   },
   { path: '/auth', name: 'auth', component: LoginView },
@@ -27,7 +33,7 @@ const router = createRouter({
   history: createMemoryHistory(),
   routes: routes
 });
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   // next({ name: 'auth' });
   const isAuthenticated = await userOps.manualCheckAuth();
   // console.log(userOps.getUserData());

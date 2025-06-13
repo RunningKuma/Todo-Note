@@ -18,9 +18,9 @@ const visible = ref(true);
 <template>
   <div :class="['container', visible ? 'ml-sidebar' : '']">
     <SideBar v-model="visible" :username="userData.username"></SideBar>
-    <div>
-      <RouterView />
+    <div class="size-full p-4">
       <DrawerTrigger v-model="visible" />
+      <RouterView />
 
 
     </div>
