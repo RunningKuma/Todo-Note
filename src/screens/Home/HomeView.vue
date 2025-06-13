@@ -38,7 +38,6 @@ const visible = ref(true);
   position: relative;
   display: flex;
   flex-direction: column;
-  text-align: center;
   place-items: center;
   gap: 0.5em;
   transition: margin 0.3s;

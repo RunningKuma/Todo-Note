@@ -7,7 +7,7 @@
 
     <!-- 控制面板 -->
     <div class="controls-panel">
-      <Button label="保存版本" @click="saveCurrentVersion" />
+      <Button label="手动保存" @click="saveCurrentVersion" />
       <Button label="刷新版本历史" @click="refreshVersionHistory" />
       <Button label="比较版本" @click="showDiffComparison" />
     </div>
@@ -31,33 +31,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Button } from 'primevue';
-import { noteDiffEngine, type NoteVersion } from '@/api/note/note';
+import { NoteVersionRaw, noteDiffEngine, } from '@/api/note/note';
 import 'vditor/dist/index.css';
 import { noteUtils } from '@/api/utils/note';
-import { throttle } from '@/api/utils/perform';
 
 const vditorElement = ref<HTMLDivElement | undefined>();
-const versions = ref<NoteVersion[]>([]);
+const versions = ref<NoteVersionRaw[]>([]);
 const diffHtml = ref('');
-const selectedVersions = ref<NoteVersion[]>([]);
+const selectedVersions = ref<NoteVersionRaw[]>([]);
 
 const noteId = ref('demo-note-001');
+
+watch(
+  () => noteId.value,
+  (newId) => {
+    // 每次切换笔记时，重新加载版本列表
+    versions.value = noteDiffEngine.getAllVersions(newId);
+    diffHtml.value = '';
+    selectedVersions.value = [];
+    noteDiffEngine.updateNoteId(newId);
+  },
+  { immediate: true }
+);
 
 onMounted(async () => {
   if (vditorElement.value) {
     await noteDiffEngine.initVditor(vditorElement.value, {
       placeholder: 'Start Typing Here...',
-      input: (value: string) => {
-        // 可以在这里添加自动保存版本的逻辑
-        throttle(() => {
-          noteDiffEngine.saveVersion(noteId.value, value);
-        }, 30 * 1000)(); // 每30秒保存一次版本
-        console.log('内容已变更:', value.length, '字符');
-
-      }
     });
+    noteDiffEngine.setAutoSave(true, 2 * 1000);
   }
 });
 
@@ -73,7 +77,7 @@ const saveCurrentVersion = () => {
   noteDiffEngine.saveVersion(noteId.value, content);
 
   // 刷新版本列表
-  versions.value = noteDiffEngine.getVersions(noteId.value);
+  versions.value = noteDiffEngine.getAllVersions(noteId.value);
 
   console.log('版本已保存:', content.substring(0, 50) + '...');
 };
@@ -82,20 +86,20 @@ const saveCurrentVersion = () => {
  * 显示版本历史
  */
 const refreshVersionHistory = () => {
-  versions.value = noteDiffEngine.getVersions(noteId.value);
+  versions.value = noteDiffEngine.getAllVersions(noteId.value);
 };
 
 /**
  * 查看特定版本
  */
-const viewVersion = (version: NoteVersion) => {
+const viewVersion = (version: NoteVersionRaw) => {
   noteDiffEngine.setContent(version.content);
 };
 
 /**
  * 选择版本进行比较
  */
-const selectForComparison = (version: NoteVersion) => {
+const selectForComparison = (version: NoteVersionRaw) => {
   if (selectedVersions.value.length < 2) {
     selectedVersions.value.push(version);
   }
@@ -127,7 +131,7 @@ const compareTwoVersions = () => {
  * 显示差异比较
  */
 const showDiffComparison = () => {
-  const versionList = noteDiffEngine.getVersions(noteId.value);
+  const versionList = noteDiffEngine.getAllVersions(noteId.value);
   if (versionList.length >= 2) {
     const latest = versionList[versionList.length - 1];
     const previous = versionList[versionList.length - 2];
