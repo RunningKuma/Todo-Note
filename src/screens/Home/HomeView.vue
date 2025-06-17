@@ -11,8 +11,6 @@ const userData = userOps.getUserData();
 
 const visible = ref(true);
 
-
-
 </script>
 
 <template>

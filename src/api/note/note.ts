@@ -1,4 +1,4 @@
-import Vditor, { IOptions } from 'vditor';
+import Vditor from 'vditor';
 import diff from 'fast-diff';
 import { throttle } from '../utils/perform';
 
@@ -287,7 +287,7 @@ export class NoteDiffEngine {
 
     return this.calculateDiff(content1, content2);
   }
-    /**
+  /**
    * 应用差分补丁
    */
   applyPatch(_originalText: string, diffs: NoteDiff[]): string {
