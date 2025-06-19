@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Avatar, Drawer, Popover } from 'primevue';
+import { Avatar, Button, Drawer, Popover } from 'primevue';
 import SideBarTab, { SideBarTabInterface } from './components/SideBarTab.vue';
 import { computed, ComputedRef, ref, watch } from 'vue';
 import { userOps } from '@/api/auth';
@@ -19,7 +19,7 @@ const tabs: SideBarTabInterface[] = [
   { name: 'search', icon: 'pi pi-search', route: { name: 'search' } },
   { name: 'overview', icon: 'pi pi-home', route: { name: 'home' } },
   { name: 'todos', icon: 'pi pi-check-square', route: { name: 'todos' } },
-  // { name: 'note', icon: 'pi pi-pen', route: { name: 'note' } },
+  { name: 'note', icon: 'pi pi-pen-to-square', route: { name: 'note' } },
 ];
 
 const route = useRoute();

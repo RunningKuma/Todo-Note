@@ -11,16 +11,14 @@ const userData = userOps.getUserData();
 
 const visible = ref(true);
 
-
-
 </script>
 
 <template>
   <div :class="['container', visible ? 'ml-sidebar' : '']">
     <SideBar v-model="visible" :username="userData.username"></SideBar>
-    <div>
-      <RouterView />
+    <div class="size-full p-4">
       <DrawerTrigger v-model="visible" />
+      <RouterView />
 
 
     </div>
@@ -38,7 +36,6 @@ const visible = ref(true);
   position: relative;
   display: flex;
   flex-direction: column;
-  text-align: center;
   place-items: center;
   gap: 0.5em;
   transition: margin 0.3s;

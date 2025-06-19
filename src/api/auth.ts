@@ -1,23 +1,22 @@
-import { testUserData } from "./constants/test";
 import type { UserData } from "./types/user";
+import { setCookie, getCookie, removeCookie, TOKEN_COOKIE_CONFIG, COOKIE_NAMES } from "./auth/cookie";
+import router from "@/router";
+import { testUserData } from "./constants/test";
 
 let _userData: UserData | undefined;
 
-const checkEmail = (email: string) => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-};
-
 export const userOps = {
   manualCheckAuth: (): Promise<boolean> => {
-    //@todo 换成使用 token 判断
     // userData = userOps.getUserData();
-    // if (!sessionStorage.getItem('token')) return false;
+    const token = getCookie(COOKIE_NAMES.TOKEN);
+    if (!token) return Promise.resolve(false);
+
+    //@todo use axios instead
     return fetch('/api/auth/manualCheck', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+        'Authorization': `Bearer ${token}`
       }
     })
       .then(response => {
@@ -31,19 +30,58 @@ export const userOps = {
         return false;
       });
   },
-  getUserData: () => {
+  getUserData: async (): Promise<UserData | undefined> => {
     if (_userData === undefined) {
-      const storedData = sessionStorage.getItem('userData');
-      if (storedData) {
-        _userData = JSON.parse(storedData);
-      }
-      else {
-        _userData = undefined;
-        //@todo use toast instead
-        console.warn('无法在本地找到用户数据，请检查登录状态.');
+      // 如果内存中没有用户数据，且有有效 token，则从服务器获取
+      const token = getCookie(COOKIE_NAMES.TOKEN);
+      if (token) {
+        return userOps.fetchUserData().then(data => {
+          if (data) {
+            return data;
+          } else {
+            console.warn('无法获取用户数据，可能是 token 已过期或无效。');
+          }
+        });
+      } else {
+        console.warn('无法找到有效的认证 token，请重新登录.');
+        router.push({ name: 'auth' });
+        return undefined;
       }
     }
-    return _userData;
+    // return _userData;
+  },
+
+  // 从服务器获取用户数据
+  fetchUserData: async (): Promise<UserData | undefined> => {
+    const token = getCookie(COOKIE_NAMES.TOKEN);
+    if (!token) {
+      return undefined;
+    }
+
+    //@todo implement server user api
+    return testUserData;
+
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const userData = await response.json() as UserData;
+        _userData = userData;
+        return userData;
+      } else {
+        removeCookie(COOKIE_NAMES.TOKEN);
+        return undefined;
+      }
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+      return undefined;
+    }
   },
   getLoginOptions: async (email: string): Promise<{ success: boolean, message: string }> => {
     // 我也不知道在写什么了后来者再优化吧()
@@ -70,8 +108,8 @@ export const userOps = {
     const { userData, message } = (await response.json().catch(() => { return { message: '' }; })) as { userData: UserData, message: string };
     if (response.status === 200) {
       _userData = userData;
-      sessionStorage.setItem('token', userData.token!);
-      sessionStorage.setItem('userData', JSON.stringify(userData));
+      // 只将 token 存储到 cookie，用户数据保存在内存中
+      setCookie(COOKIE_NAMES.TOKEN, userData.token!, TOKEN_COOKIE_CONFIG);
 
       return { success: true, message };
     }
@@ -105,7 +143,6 @@ export const userOps = {
   },
   logout: () => {
     _userData = undefined;
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('userData');
+    removeCookie(COOKIE_NAMES.TOKEN);
   }
 };

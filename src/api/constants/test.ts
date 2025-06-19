@@ -1,9 +1,11 @@
 import type { UserData } from "../types/user";
 
 export const testUserData: UserData = {
-  id: '1',
-  token: 'token',
-  username: 'testuser',
+
+  id: "c3fea732-28d2-4320-8e32-a6c89314e8fd",
+  email: "test@test.com",
+  username: "test-user",
+  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImMzZmVhNzMyLTI4ZDItNDMyMC04ZTMyLWE2Yzg5MzE0ZThmZCIsImlhdCI6MTc1MDE3MjE5MiwiZXhwIjoxNzUwMTc1NzkyfQ.9LvxXnoAEcjT6YBvsSYcjNNT-s0rADg-PJgo7_kZpIo",
   todo: [
     {
       id: '1',
