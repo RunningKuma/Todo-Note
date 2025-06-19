@@ -5,6 +5,7 @@ import LoginView from '@/screens/Login/LoginView.vue';
 import { userOps } from "@/api/auth";
 import Overview from "@/screens/Home/Overview/Overview.vue";
 import Search from "@/screens/Home/Search/Search.vue";
+import TodoView from "@/screens/Home/Todo/TodoView.vue";
 import Note from "@/screens/Home/Note/Note.vue";
 
 const routes: readonly RouteRecordRaw[] = [
@@ -21,9 +22,16 @@ const routes: readonly RouteRecordRaw[] = [
         component: Search
       },
       {
+
+        path: 'todos',
+        name: 'todos',
+        component: TodoView
+      },
+      {
         path: 'note',
         name: 'note',
         component: Note
+
       },
     ]
   },

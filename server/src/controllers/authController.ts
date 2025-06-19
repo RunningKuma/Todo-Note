@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/userService';
+import { TodoService } from '../services/todoService';
 import { User } from '../models/user';
 import { hashPassword, comparePassword } from '../utils/password';
 import jwt from 'jsonwebtoken';
@@ -9,9 +10,11 @@ import { generateToken, verifyToken } from '@server/utils/jwt';
 
 export class AuthController {
   private userService: UserService;
+  private todoService: TodoService;
 
   constructor() {
     this.userService = new UserService();
+    this.todoService = new TodoService();
   }
 
   //! 使用 成员定义 会导致 express 路由处理器中的 this 绑定丢失为 undefined
@@ -55,18 +58,17 @@ export class AuthController {
       if (!isMatch) {
         res.status(401).json({ message: 'Incorrect password.' }).send();
         return;
-      }
-
-      //@todo implement jwt secret in env
+      }      //@todo implement jwt secret in env
       if (!process.env.JWT_SECRET) {
         console.warn('JWT_SECRET is not set.');
       }
       //@todo expire？
       const token = generateToken(user.id);
 
-      //@todo implement todos query
+      // 获取用户的TODO列表
+      const userTodos = await this.todoService.getUserTodos(user.id);
 
-      res.status(200).json({ userData: { id: user.id, email: user.email, username: user.username, token, todo: [] } as UserData, message: '' }).send();
+      res.status(200).json({ userData: { id: user.id, email: user.email, username: user.username, token, todo: userTodos } as UserData, message: '' }).send();
     } catch (error) {
       console.error('Error logging in:', error);
       res.status(500).json({ message: 'Error logging in', error }).send();
