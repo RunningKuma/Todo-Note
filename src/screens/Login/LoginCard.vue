@@ -4,7 +4,7 @@ import Card from "primevue/card";
 import Divider from "primevue/divider";
 import Skeleton from "primevue/skeleton";
 import { ref } from "vue";
-import { userOps } from "@/api/auth";
+import { userOps } from "@/api/auth/auth";
 import router from "@/router";
 import LoginInput from "./components/LoginInput.vue";
 

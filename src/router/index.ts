@@ -2,7 +2,7 @@ import { createMemoryHistory, createRouter, type RouteRecordRaw } from "vue-rout
 
 import HomeView from '@/screens/Home/HomeView.vue';
 import LoginView from '@/screens/Login/LoginView.vue';
-import { userOps } from "@/api/auth";
+import { userOps } from "@/api/auth/auth";
 import Overview from "@/screens/Home/Overview/Overview.vue";
 import Search from "@/screens/Home/Search/Search.vue";
 import TodoView from "@/screens/Home/Todo/TodoView.vue";

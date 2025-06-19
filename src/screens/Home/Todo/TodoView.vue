@@ -2,34 +2,17 @@
   <div class="todo-container p-4">
     <div class="header flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold text-gray-800">我的任务</h1>
-      <Button 
-        icon="pi pi-plus" 
-        label="添加任务" 
-        @click="showCreateDialog = true"
-        class="bg-primary text-white"
-      />
+      <Button icon="pi pi-plus" label="添加任务" @click="showCreateDialog = true" class="bg-primary text-white" />
     </div>
 
     <!-- 过滤器 -->
     <div class="filters mb-4 flex gap-2">
-      <Button 
-        :class="['filter-btn', currentFilter === 'all' ? 'p-button-info' : 'p-button-secondary']"
-        label="全部" 
-        @click="setFilter('all')"
-        size="small"
-      />
-      <Button 
-        :class="['filter-btn', currentFilter === 'pending' ? 'p-button-info' : 'p-button-secondary']"
-        label="未完成" 
-        @click="setFilter('pending')"
-        size="small"
-      />
-      <Button 
-        :class="['filter-btn', currentFilter === 'completed' ? 'p-button-info' : 'p-button-secondary']"
-        label="已完成" 
-        @click="setFilter('completed')"
-        size="small"
-      />
+      <Button :class="['filter-btn', currentFilter === 'all' ? 'p-button-info' : 'p-button-secondary']" label="全部"
+        @click="setFilter('all')" size="small" />
+      <Button :class="['filter-btn', currentFilter === 'pending' ? 'p-button-info' : 'p-button-secondary']" label="未完成"
+        @click="setFilter('pending')" size="small" />
+      <Button :class="['filter-btn', currentFilter === 'completed' ? 'p-button-info' : 'p-button-secondary']"
+        label="已完成" @click="setFilter('completed')" size="small" />
     </div>
 
     <!-- TODO列表 -->
@@ -38,47 +21,26 @@
         <ProgressSpinner />
         <p class="mt-2 text-gray-600">加载中...</p>
       </div>
-      
+
       <div v-else-if="filteredTodos.length === 0" class="text-center py-8">
         <i class="pi pi-inbox text-4xl text-gray-400 mb-4"></i>
         <p class="text-gray-600">暂无任务</p>
       </div>
-      
+
       <div v-else class="space-y-3">
-        <TodoItem 
-          v-for="todo in filteredTodos" 
-          :key="todo.id"
-          :todo="todo"
-          @toggle="toggleTodo"
-          @edit="editTodo"
-          @delete="deleteTodo"
-        />
+        <TodoItem v-for="todo in filteredTodos" :key="todo.id" :todo="todo" @toggle="toggleTodo" @edit="editTodo"
+          @delete="deleteTodo" />
       </div>
     </div>
 
     <!-- 创建TODO对话框 -->
-    <Dialog 
-      v-model:visible="showCreateDialog" 
-      modal 
-      header="创建新任务"
-      class="w-96"
-    >
+    <Dialog v-model:visible="showCreateDialog" modal header="创建新任务" class="w-96">
       <CreateTodoForm @submit="createTodo" @cancel="showCreateDialog = false" />
     </Dialog>
 
     <!-- 编辑TODO对话框 -->
-    <Dialog 
-      v-model:visible="showEditDialog" 
-      modal 
-      header="编辑任务"
-      class="w-96"
-    >
-      <EditTodoForm 
-        v-if="editingTodo"
-        :todo="editingTodo"
-        @submit="updateTodo"
-        @cancel="showEditDialog = false"
-      />
+    <Dialog v-model:visible="showEditDialog" modal header="编辑任务" class="w-96">
+      <EditTodoForm v-if="editingTodo" :todo="editingTodo" @submit="updateTodo" @cancel="showEditDialog = false" />
     </Dialog>
 
     <!-- Toast通知 -->
@@ -90,7 +52,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { Button, Dialog, ProgressSpinner, Toast } from 'primevue';
 import { useToast } from 'primevue/usetoast';
-import { todoOps } from '@/api/todo';
+import { todoOps } from '@/api/todo/todo';
 import type { Todo } from '@/api/types/todo';
 import TodoItem from './components/TodoItem.vue';
 import CreateTodoForm from './components/CreateTodoForm.vue';
@@ -237,7 +199,7 @@ const editTodo = (todo: Todo) => {
 
 const updateTodo = async (todoData: any) => {
   if (!editingTodo.value) return;
-  
+
   try {
     const response = await todoOps.updateTodo(editingTodo.value.id, todoData);
     if (response.success && response.data) {

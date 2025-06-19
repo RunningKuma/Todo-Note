@@ -2,7 +2,7 @@
 import { Avatar, Button, Drawer, Popover } from 'primevue';
 import SideBarTab, { SideBarTabInterface } from './components/SideBarTab.vue';
 import { computed, ComputedRef, ref, watch } from 'vue';
-import { userOps } from '@/api/auth';
+import { userOps } from '@/api/auth/auth';
 import router from '@/router';
 import { RouteLocationAsRelativeGeneric, useRoute } from 'vue-router';
 const visible = defineModel<boolean>();

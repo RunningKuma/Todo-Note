@@ -1,27 +1,17 @@
 <template>
   <div class="simple-todo-test p-6">
     <h1 class="text-2xl font-bold mb-4">TODO 模块测试</h1>
-    
+
     <div class="mb-4">
-      <input 
-        v-model="newTodoTitle" 
-        @keyup.enter="createSimpleTodo"
-        placeholder="输入新任务标题..."
-        class="border p-2 w-64 mr-2"
-      />
-      <button 
-        @click="createSimpleTodo"
-        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >
+      <input v-model="newTodoTitle" @keyup.enter="createSimpleTodo" placeholder="输入新任务标题..."
+        class="border p-2 w-64 mr-2" />
+      <button @click="createSimpleTodo" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
         添加任务
       </button>
     </div>
 
     <div class="mb-4">
-      <button 
-        @click="loadTodos"
-        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mr-2"
-      >
+      <button @click="loadTodos" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mr-2">
         刷新任务列表
       </button>
       <span v-if="loading" class="text-blue-500">加载中...</span>
@@ -36,14 +26,10 @@
         暂无任务
       </div>
       <div v-else>
-        <div v-for="todo in todos" :key="todo.id" class="todo-item border p-3 mb-2 rounded flex items-center justify-between">
+        <div v-for="todo in todos" :key="todo.id"
+          class="todo-item border p-3 mb-2 rounded flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <input 
-              type="checkbox" 
-              :checked="todo.completed"
-              @change="toggleTodo(todo)"
-              class="w-4 h-4"
-            />
+            <input type="checkbox" :checked="todo.completed" @change="toggleTodo(todo)" class="w-4 h-4" />
             <span :class="{ 'line-through text-gray-500': todo.completed }">
               {{ todo.title }}
             </span>
@@ -51,10 +37,7 @@
               {{ todo.priority }}
             </span>
           </div>
-          <button 
-            @click="deleteTodo(todo)"
-            class="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
-          >
+          <button @click="deleteTodo(todo)" class="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600">
             删除
           </button>
         </div>
@@ -65,7 +48,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { todoOps } from '@/api/todo';
+import { todoOps } from '@/api/todo/todo';
 
 const todos = ref<any[]>([]);
 const loading = ref(false);
@@ -86,7 +69,7 @@ const loadTodos = async () => {
   try {
     const response = await todoOps.getTodos();
     console.log('TODO响应:', response);
-    
+
     if (response.success) {
       todos.value = response.data || [];
       showMessage(`成功加载 ${todos.value.length} 个任务`);
@@ -112,9 +95,9 @@ const createSimpleTodo = async () => {
       title: newTodoTitle.value.trim(),
       priority: 'medium'
     });
-    
+
     console.log('创建TODO响应:', response);
-    
+
     if (response.success && response.data) {
       todos.value.unshift(response.data);
       newTodoTitle.value = '';
@@ -132,7 +115,7 @@ const toggleTodo = async (todo: any) => {
   try {
     const response = await todoOps.toggleTodo(todo.id);
     console.log('切换TODO响应:', response);
-    
+
     if (response.success && response.data) {
       const index = todos.value.findIndex(t => t.id === todo.id);
       if (index !== -1) {
@@ -156,7 +139,7 @@ const deleteTodo = async (todo: any) => {
   try {
     const response = await todoOps.deleteTodo(todo.id);
     console.log('删除TODO响应:', response);
-    
+
     if (response.success) {
       todos.value = todos.value.filter(t => t.id !== todo.id);
       showMessage('任务删除成功');

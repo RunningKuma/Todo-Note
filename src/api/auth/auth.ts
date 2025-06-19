@@ -1,7 +1,7 @@
-import type { UserData } from "./types/user";
-import { setCookie, getCookie, removeCookie, TOKEN_COOKIE_CONFIG, COOKIE_NAMES } from "./auth/cookie";
+import type { UserData } from "../types/user";
+import { setCookie, getCookie, removeCookie, TOKEN_COOKIE_CONFIG, COOKIE_NAMES } from "./cookie";
 import router from "@/router";
-import { testUserData } from "./constants/test";
+import { testUserData } from "../constants/test";
 
 let _userData: UserData | undefined;
 

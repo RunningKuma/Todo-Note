@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import Button from "primevue/button";
-import { userOps } from "@/api/auth";
+import { userOps } from "@/api/auth/auth";
 import router from "@/router";
 import DrawerTrigger from "./SideBar/DrawerTrigger.vue";
 import SideBar from "./SideBar/SideBar.vue";

@@ -1,4 +1,5 @@
-import type { Todo } from './types/todo';
+import { COOKIE_NAMES, getCookie } from '../auth/cookie';
+import type { Todo } from '../types/todo';
 
 // API 响应类型
 interface ApiResponse<T> {
@@ -37,7 +38,7 @@ export const todoOps = {
    * 获取用户的所有TODO
    */
   getTodos: async (): Promise<TodoListResponse> => {
-    const token = sessionStorage.getItem('token');
+    const token = getCookie(COOKIE_NAMES.TOKEN);
     const response = await fetch('/api/todos', {
       method: 'GET',
       headers: {
@@ -61,7 +62,7 @@ export const todoOps = {
    * 创建新的TODO
    */
   createTodo: async (todoData: CreateTodoRequest): Promise<ApiResponse<Todo>> => {
-    const token = sessionStorage.getItem('token');
+    const token = getCookie(COOKIE_NAMES.TOKEN);
     const response = await fetch('/api/todos', {
       method: 'POST',
       headers: {
@@ -85,7 +86,7 @@ export const todoOps = {
    * 更新TODO
    */
   updateTodo: async (id: number | string, todoData: UpdateTodoRequest): Promise<ApiResponse<Todo>> => {
-    const token = sessionStorage.getItem('token');
+    const token = getCookie(COOKIE_NAMES.TOKEN);
     const response = await fetch(`/api/todos/${id}`, {
       method: 'PUT',
       headers: {
@@ -109,7 +110,7 @@ export const todoOps = {
    * 删除TODO
    */
   deleteTodo: async (id: number | string): Promise<ApiResponse<void>> => {
-    const token = sessionStorage.getItem('token');
+    const token = getCookie(COOKIE_NAMES.TOKEN);
     const response = await fetch(`/api/todos/${id}`, {
       method: 'DELETE',
       headers: {
@@ -132,7 +133,7 @@ export const todoOps = {
    * 切换TODO完成状态
    */
   toggleTodo: async (id: number | string): Promise<ApiResponse<Todo>> => {
-    const token = sessionStorage.getItem('token');
+    const token = getCookie(COOKIE_NAMES.TOKEN);
     const response = await fetch(`/api/todos/${id}/toggle`, {
       method: 'PATCH',
       headers: {
@@ -156,7 +157,7 @@ export const todoOps = {
    * 获取已完成的TODO
    */
   getCompletedTodos: async (): Promise<TodoListResponse> => {
-    const token = sessionStorage.getItem('token');
+    const token = getCookie(COOKIE_NAMES.TOKEN);
     const response = await fetch('/api/todos/completed', {
       method: 'GET',
       headers: {
@@ -180,7 +181,7 @@ export const todoOps = {
    * 获取未完成的TODO
    */
   getPendingTodos: async (): Promise<TodoListResponse> => {
-    const token = sessionStorage.getItem('token');
+    const token = getCookie(COOKIE_NAMES.TOKEN);
     const response = await fetch('/api/todos/pending', {
       method: 'GET',
       headers: {
@@ -204,7 +205,7 @@ export const todoOps = {
    * 按分类获取TODO
    */
   getTodosByCategory: async (category: string): Promise<TodoListResponse> => {
-    const token = sessionStorage.getItem('token');
+    const token = getCookie(COOKIE_NAMES.TOKEN);
     const response = await fetch(`/api/todos/category/${category}`, {
       method: 'GET',
       headers: {

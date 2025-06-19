@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { userOps } from "@/api/auth";
+import { userOps } from "@/api/auth/auth";
 import router from "@/router";
 import LoginCard from "./LoginCard.vue";
 import RegisterCard from "./RegisterCard.vue";

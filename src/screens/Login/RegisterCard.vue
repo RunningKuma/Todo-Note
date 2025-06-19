@@ -2,7 +2,7 @@
 import Button from "primevue/button";
 import Card from "primevue/card";
 import { ref } from "vue";
-import { userOps } from "@/api/auth";
+import { userOps } from "@/api/auth/auth";
 import LoginInput from "./components/LoginInput.vue";
 
 const emit = defineEmits(['stepTo']);
