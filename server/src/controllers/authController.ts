@@ -64,11 +64,11 @@ export class AuthController {
       }
       //@todo expire？
       const token = generateToken(user.id);
-
+      res.header('Authorization', `Bearer ${token}`);
       // 获取用户的TODO列表
       const userTodos = await this.todoService.getUserTodos(user.id);
 
-      res.status(200).json({ userData: { id: user.id, email: user.email, username: user.username, token, todo: userTodos } as UserData, message: '' }).send();
+      res.status(200).json({ userData: { id: user.id, email: user.email, username: user.username, todo: userTodos } as UserData, message: '' }).send();
     } catch (error) {
       console.error('Error logging in:', error);
       res.status(500).json({ message: 'Error logging in', error }).send();

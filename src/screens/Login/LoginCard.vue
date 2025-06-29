@@ -27,7 +27,7 @@ const handleForm = async () => {
 
   //@todo fix type
   const result = await userOps.login(email.value as string, password.value);
-  console.log(result);
+  // console.log(result);
 
   if (result.success) {
     loading.value = false;

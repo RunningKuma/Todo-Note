@@ -41,15 +41,15 @@ const router = createRouter({
   history: createMemoryHistory(),
   routes: routes
 });
-router.beforeEach(async (to, _from, next) => {
-  // next({ name: 'auth' });
-  const isAuthenticated = await userOps.manualCheckAuth();
-  // console.log(userOps.getUserData());
-  if (isAuthenticated || to.name === 'auth') {
-    next();
-  } else {
-    console.warn('用户未认证，重定向到登录页面');
-    next({ name: 'auth' });
-  }
-});
+// router.beforeEach(async (to, _from, next) => {
+//   // next({ name: 'auth' });
+//   const isAuthenticated = await userOps.manualCheckAuth();
+//   // console.log(userOps.getUserData());
+//   if (isAuthenticated || to.name === 'auth') {
+//     next();
+//   } else {
+//     console.warn('用户未认证，重定向到登录页面');
+//     next({ name: 'auth' });
+//   }
+// });
 export default router;

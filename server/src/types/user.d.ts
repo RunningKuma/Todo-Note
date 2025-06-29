@@ -6,6 +6,6 @@ export type UserData = {
 	email: string,
 	username: string,
 	// roles: 'admin' | 'user',
-	token: string | null,
+	// token: string | null,
 	todo: TodoData[]
 }
