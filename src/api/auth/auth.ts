@@ -126,9 +126,6 @@ export const userOps = {
     //   };
     // }
     const { message } = response?.data as { message?: string };
-    if (!message) {
-      return { message: 'Invalid response' };
-    }
     if (response.status === 201) {
       return { success: true, message };
     }

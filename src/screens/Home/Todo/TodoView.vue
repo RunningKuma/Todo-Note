@@ -156,7 +156,7 @@ const createTodo = async (todoData: any) => {
 
 const toggleTodo = async (todo: Todo) => {
   try {
-    const response = await todoOps.toggleTodo(todo.id);
+    const response = await todoOps.toggleTodo(todo.id, !todo.completed);
     if (response.success && response.data) {
       const index = todos.value.findIndex(t => t.id === todo.id);
       if (index !== -1) {
