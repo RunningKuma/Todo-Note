@@ -46,9 +46,9 @@ const noteId = ref('demo-note-001');
 
 watch(
   () => noteId.value,
-  (newId) => {
+  async (newId) => {
     // 每次切换笔记时，重新加载版本列表
-    versions.value = noteDiffEngine.getAllVersions(newId);
+    versions.value = await noteDiffEngine.getAllVersions(newId);
     diffHtml.value = '';
     selectedVersions.value = [];
     noteDiffEngine.updateNoteId(newId);
@@ -73,13 +73,13 @@ onUnmounted(() => {
 /**
  * 保存当前版本
  */
-const saveCurrentVersion = () => {
-  const content = noteDiffEngine.getCurrentContent();
+const saveCurrentVersion = async () => {
+  const content = await noteDiffEngine.getCurrentContent();
   // @todo use real user
-  noteDiffEngine.saveVersion(noteId.value, content);
+  await noteDiffEngine.saveVersion(noteId.value, content);
 
   // 刷新版本列表
-  versions.value = noteDiffEngine.getAllVersions(noteId.value);
+  versions.value = await noteDiffEngine.getAllVersions(noteId.value);
 
   console.log('版本已保存:', content.substring(0, 50) + '...');
 };
@@ -87,8 +87,9 @@ const saveCurrentVersion = () => {
 /**
  * 显示版本历史
  */
-const refreshVersionHistory = () => {
-  versions.value = noteDiffEngine.getAllVersions(noteId.value);
+//@todo 查看历史时应当禁用 自动保存……
+const refreshVersionHistory = async () => {
+  versions.value = await noteDiffEngine.getAllVersions(noteId.value);
 };
 
 /**
@@ -132,8 +133,8 @@ const compareTwoVersions = () => {
 /**
  * 显示差异比较
  */
-const showDiffComparison = () => {
-  const versionList = noteDiffEngine.getAllVersions(noteId.value);
+const showDiffComparison = async () => {
+  const versionList = await noteDiffEngine.getAllVersions(noteId.value);
   if (versionList.length >= 2) {
     const latest = versionList[versionList.length - 1];
     const previous = versionList[versionList.length - 2];

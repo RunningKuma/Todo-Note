@@ -1,6 +1,7 @@
 import Vditor from 'vditor';
 import diff from 'fast-diff';
 import { throttle } from '../utils/perform';
+import { indexedDBManager } from '../utils/indexedDB';
 
 export interface NoteDiff {
   type: 'equal' | 'delete' | 'insert';
@@ -28,6 +29,34 @@ export class NoteDiffEngine {
   private versions: Map<string, NoteVersion[]> = new Map();
   private autoSaveEnabled = true;
   private autoSaveDelay = 2000; // 2秒自动保存
+  private dbInitialized = false;
+
+  constructor() {
+    this.initDB();
+  }
+
+  /**
+   * 初始化 IndexedDB
+   */
+  private async initDB(): Promise<void> {
+    try {
+      await indexedDBManager.init();
+      this.dbInitialized = true;
+      console.log('IndexedDB 初始化成功');
+    } catch (error) {
+      console.error('IndexedDB 初始化失败:', error);
+      this.dbInitialized = false;
+    }
+  }
+
+  /**
+   * 确保数据库已初始化
+   */
+  private async ensureDBInitialized(): Promise<void> {
+    if (!this.dbInitialized) {
+      await this.initDB();
+    }
+  }
 
   /**
    * 初始化 Vditor 编辑器
@@ -46,10 +75,14 @@ export class NoteDiffEngine {
       input: (value: string) => {
         this.handleContentChange(value);
       },
-      blur: (value: string) => {
+      blur: async (value: string) => {
         // 失去焦点时手动保存一次
         // @todo use real user
-        this.saveVersion(this.noteId || '', value, '当前用户');
+        try {
+          await this.saveVersion(this.noteId || '', value, '当前用户');
+        } catch (error) {
+          console.error('保存失败:', error);
+        }
       },
       ...options
     });
@@ -60,7 +93,7 @@ export class NoteDiffEngine {
   /**
    * 处理内容变更 - 自动保存版本
    */
-  private handleContentChange = throttle((value: unknown) => {
+  private handleContentChange = throttle(async (value: unknown) => {
     if (!this.autoSaveEnabled) return;
     if (!this.noteId) {
       // use toast instead
@@ -69,11 +102,10 @@ export class NoteDiffEngine {
     }
 
     const content = String(value);
-
     const currentNoteId = this.noteId;
 
     try {
-      const saved = this.saveVersion(currentNoteId, content, '当前用户');
+      const saved = await this.saveVersion(currentNoteId, content, '当前用户');
       if (saved) {
         console.log('自动保存版本成功');
       }
@@ -126,8 +158,23 @@ export class NoteDiffEngine {
   /**
    * 保存笔记版本 - 只保存与前一版本的差异
    */
-  saveVersion(noteId: string, content: string, author?: string): boolean {
-    if (!this.versions.has(noteId)) {
+  async saveVersion(noteId: string, content: string, author?: string): Promise<boolean> {
+    try {
+      await this.ensureDBInitialized();
+    } catch (error) {
+      console.error('数据库初始化失败，使用内存存储:', error);
+    }
+
+    // 从数据库加载现有版本（如果内存中没有）
+    if (!this.versions.has(noteId) && this.dbInitialized) {
+      try {
+        const dbVersions = await indexedDBManager.getNoteVersions(noteId);
+        this.versions.set(noteId, dbVersions);
+      } catch (error) {
+        console.error('从数据库加载版本失败:', error);
+        this.versions.set(noteId, []);
+      }
+    } else if (!this.versions.has(noteId)) {
       this.versions.set(noteId, []);
     }
 
@@ -142,12 +189,22 @@ export class NoteDiffEngine {
         author
       };
       versions.push(firstVersion);
+
+      // 保存到数据库
+      if (this.dbInitialized) {
+        try {
+          await indexedDBManager.addVersionToNote(noteId, firstVersion);
+        } catch (error) {
+          console.error('保存版本到数据库失败:', error);
+        }
+      }
+
       return true;
     }
 
     // 获取最新版本的内容
     const latestVersion = versions[versions.length - 1];
-    const latestContent = this.getVersionContent(noteId, latestVersion.id);
+    const latestContent = await this.getVersionContent(noteId, latestVersion.id);
 
     if (!latestContent) {
       throw new Error('无法获取最新版本内容');
@@ -178,10 +235,14 @@ export class NoteDiffEngine {
 
     versions.push(newVersion);
 
-    // // 只保留最近的 50 个版本
-    // if (versions.length > 50) {
-    //   versions.splice(0, versions.length - 50);
-    // }
+    // 保存到数据库
+    if (this.dbInitialized) {
+      try {
+        await indexedDBManager.addVersionToNote(noteId, newVersion);
+      } catch (error) {
+        console.error('保存版本到数据库失败:', error);
+      }
+    }
 
     console.log(`保存版本差异: +${this.getDiffStats(diffs).additions} -${this.getDiffStats(diffs).deletions}`);
     return true;
@@ -190,8 +251,29 @@ export class NoteDiffEngine {
   /**
    * 获取指定版本的完整内容
    */
-  getVersionContent(noteId: string, versionId: string): string | null {
-    const versions = this.versions.get(noteId);
+  _versionCache: Map<string, string> = new Map();
+  async getVersionContent(noteId: string, versionId: string): Promise<string | null> {
+    const cacheKey = `${noteId}_${versionId}`;
+
+    if (this._versionCache.has(cacheKey)) {
+      return this._versionCache.get(cacheKey) || null;
+    }
+
+    // 尝试从内存中获取
+    let versions = this.versions.get(noteId);
+
+    // 如果内存中没有，尝试从数据库加载
+    if (!versions && this.dbInitialized) {
+      try {
+        versions = await indexedDBManager.getNoteVersions(noteId);
+        if (versions.length > 0) {
+          this.versions.set(noteId, versions);
+        }
+      } catch (error) {
+        console.error('从数据库加载版本失败:', error);
+      }
+    }
+
     if (!versions) return null;
 
     const versionIndex = versions.findIndex(v => v.id === versionId);
@@ -220,24 +302,33 @@ export class NoteDiffEngine {
       }
     }
 
+    // 缓存结果
+    this._versionCache.set(cacheKey, content);
+    if (this._versionCache.size > 100) {
+      // 清理缓存，保持最近的 100 个版本内容
+      const keys = Array.from(this._versionCache.keys()).slice(0, -100);
+      keys.forEach(key => this._versionCache.delete(key));
+    }
+
     return content;
   }
 
   /**
    * 获取所有版本内容
    */
-  getAllVersions(noteId: string): NoteVersionRaw[] {
-    const versions = this.getVersions(noteId);
+  async getAllVersions(noteId: string): Promise<NoteVersionRaw[]> {
+    const versions = await this.getVersions(noteId);
     const contents: NoteVersionRaw[] = [];
 
-    versions.forEach(version => {
+    for (const version of versions) {
+      const content = await this.getVersionContent(noteId, version.id);
       contents.push({
         id: version.id,
-        content: this.getVersionContent(noteId, version.id) || '',
+        content: content || '',
         timestamp: version.timestamp,
         author: version.author
       });
-    });
+    }
 
     return contents;
   }
@@ -273,15 +364,31 @@ export class NoteDiffEngine {
   /**
    * 获取笔记的所有版本
    */
-  getVersions(noteId: string): NoteVersion[] {
-    return this.versions.get(noteId) || [];
+  async getVersions(noteId: string): Promise<NoteVersion[]> {
+    // 尝试从内存中获取
+    let versions = this.versions.get(noteId);
+
+    // 如果内存中没有，尝试从数据库加载
+    if (!versions && this.dbInitialized) {
+      try {
+        versions = await indexedDBManager.getNoteVersions(noteId);
+        if (versions.length > 0) {
+          this.versions.set(noteId, versions);
+        }
+      } catch (error) {
+        console.error('从数据库加载版本失败:', error);
+        return [];
+      }
+    }
+
+    return versions || [];
   }
   /**
    * 比较两个版本的差异
    */
-  compareVersions(noteId: string, versionId1: string, versionId2: string): NoteDiff[] | null {
-    const content1 = this.getVersionContent(noteId, versionId1);
-    const content2 = this.getVersionContent(noteId, versionId2);
+  async compareVersions(noteId: string, versionId1: string, versionId2: string): Promise<NoteDiff[] | null> {
+    const content1 = await this.getVersionContent(noteId, versionId1);
+    const content2 = await this.getVersionContent(noteId, versionId2);
 
     if (!content1 || !content2) return null;
 
@@ -364,11 +471,100 @@ export class NoteDiffEngine {
   }
 
   /**
-   * 销毁编辑器
+   * 销毁编辑器和清理资源
    */
   destroy(): void {
     this.vditor?.destroy();
     this.vditor = undefined;
+    
+    // 清理内存中的数据
+    this.versions.clear();
+    this._versionCache.clear();
+    
+    // 关闭数据库连接
+    if (this.dbInitialized) {
+      indexedDBManager.close();
+      this.dbInitialized = false;
+    }
+  }
+
+  /**
+   * 删除笔记的所有版本
+   */
+  async deleteNoteVersions(noteId: string): Promise<void> {
+    // 从内存中删除
+    this.versions.delete(noteId);
+
+    // 从缓存中删除相关条目
+    const keysToDelete = Array.from(this._versionCache.keys())
+      .filter(key => key.startsWith(`${noteId}_`));
+    keysToDelete.forEach(key => this._versionCache.delete(key));
+
+    // 从数据库中删除
+    if (this.dbInitialized) {
+      try {
+        await indexedDBManager.deleteNoteVersions(noteId);
+      } catch (error) {
+        console.error('从数据库删除版本失败:', error);
+      }
+    }
+  }
+
+  /**
+   * 获取所有笔记的基本信息
+   */
+  async getAllNotesInfo(): Promise<Array<{ id: string; lastModified: number; versionCount: number }>> {
+    if (!this.dbInitialized) {
+      await this.ensureDBInitialized();
+    }
+
+    if (this.dbInitialized) {
+      try {
+        return await indexedDBManager.getAllNotesInfo();
+      } catch (error) {
+        console.error('获取笔记信息失败:', error);
+      }
+    }
+
+    // 回退到内存数据
+    const notesInfo: Array<{ id: string; lastModified: number; versionCount: number }> = [];
+    for (const [noteId, versions] of this.versions.entries()) {
+      const lastModified = versions.length > 0 ? versions[versions.length - 1].timestamp : 0;
+      notesInfo.push({
+        id: noteId,
+        lastModified,
+        versionCount: versions.length
+      });
+    }
+    return notesInfo;
+  }
+
+  /**
+   * 清理过期数据
+   */
+  async cleanupOldData(daysToKeep = 30): Promise<void> {
+    if (this.dbInitialized) {
+      try {
+        await indexedDBManager.cleanupOldData(daysToKeep);
+        console.log(`已清理 ${daysToKeep} 天前的数据`);
+      } catch (error) {
+        console.error('清理过期数据失败:', error);
+      }
+    }
+  }
+
+  /**
+   * 获取存储使用情况
+   */
+  async getStorageInfo(): Promise<{ estimatedUsage: number; quota: number }> {
+    if (this.dbInitialized) {
+      try {
+        return await indexedDBManager.getStorageInfo();
+      } catch (error) {
+        console.error('获取存储信息失败:', error);
+      }
+    }
+    return { estimatedUsage: 0, quota: 0 };
   }
 }
 
