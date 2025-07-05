@@ -53,18 +53,18 @@ import { ref, computed, onMounted } from 'vue';
 import { Button, Dialog, ProgressSpinner, Toast } from 'primevue';
 import { useToast } from 'primevue/usetoast';
 import { todoOps } from '@/api/todo/todo';
-import type { Todo } from '@/api/types/todo';
+import type { Todo_Old } from '@/api/types/todo';
 import TodoItem from './components/TodoItem.vue';
 import CreateTodoForm from './components/CreateTodoForm.vue';
 import EditTodoForm from './components/EditTodoForm.vue';
 
 // 状态管理
-const todos = ref<Todo[]>([]);
+const todos = ref<Todo_Old[]>([]);
 const loading = ref(false);
 const currentFilter = ref<'all' | 'pending' | 'completed'>('all');
 const showCreateDialog = ref(false);
 const showEditDialog = ref(false);
-const editingTodo = ref<Todo | null>(null);
+const editingTodo = ref<Todo_Old | null>(null);
 
 const toast = useToast();
 
@@ -154,7 +154,7 @@ const createTodo = async (todoData: any) => {
   }
 };
 
-const toggleTodo = async (todo: Todo) => {
+const toggleTodo = async (todo: Todo_Old) => {
   try {
     const response = await todoOps.toggleTodo(todo.id, !todo.completed);
     if (response.success && response.data) {
@@ -192,7 +192,7 @@ const toggleTodo = async (todo: Todo) => {
   }
 };
 
-const editTodo = (todo: Todo) => {
+const editTodo = (todo: Todo_Old) => {
   editingTodo.value = { ...todo };
   showEditDialog.value = true;
 };
@@ -239,7 +239,7 @@ const updateTodo = async (todoData: any) => {
   }
 };
 
-const deleteTodo = async (todo: Todo) => {
+const deleteTodo = async (todo: Todo_Old) => {
   try {
     const response = await todoOps.deleteTodo(todo.id);
     if (response.success) {

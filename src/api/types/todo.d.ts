@@ -1,4 +1,6 @@
-export type Todo = {
+import { NoteId, TodoId, TodoTags } from "./gerneral";
+
+export type Todo_Old = {
 	id: number;
 	user_id: string;
 	title: string;
@@ -14,3 +16,22 @@ export type Todo = {
 	updatedAt: Date;
 	dueDate?: Date;
 }
+
+export type TodoInfo = {
+	id: TodoId,
+	title: string,
+	description?: string,
+	create: Date,
+	ddl?: Date,
+	priority: number,
+	tags?: TodoTags,
+	note_link?: NoteId
+}
+export type TodoStatus = { completed: 'completed' | 'in-progress' | 'not-started' | 'pending' }
+
+export type Todo = {
+	info: TodoInfo
+	status: TodoStatus;
+}
+
+export type TodoCreateData = Omit<TodoInfo, 'id' | 'create'>

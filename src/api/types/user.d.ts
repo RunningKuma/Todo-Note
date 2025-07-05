@@ -1,10 +1,15 @@
 import type { Todo } from "./todo";
 
-export type UserData = {
+export type UserInfo = {
 	id: string,
 	email: string,
 	username: string,
 	// roles: 'admin' | 'user',
-	token: string | null,
+}
+export type UserStore = {
 	todo: Todo[]
+}
+export type UserData = {
+	info: UserInfo,
+	Store: UserStore
 }

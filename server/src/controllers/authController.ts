@@ -5,7 +5,7 @@ import { User } from '../models/user';
 import { hashPassword, comparePassword } from '../utils/password';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
-import { UserData } from '@server/types/user';
+import { UserData_Old } from '@server/types/user';
 import { generateToken, verifyToken } from '@server/utils/jwt';
 
 export class AuthController {
@@ -68,7 +68,7 @@ export class AuthController {
       // 获取用户的TODO列表
       const userTodos = await this.todoService.getUserTodos(user.id);
 
-      res.status(200).json({ userData: { id: user.id, email: user.email, username: user.username, todo: userTodos } as UserData, message: '' }).send();
+      res.status(200).json({ userData: { id: user.id, email: user.email, username: user.username, todo: userTodos } as UserData_Old, message: '' }).send();
     } catch (error) {
       console.error('Error logging in:', error);
       res.status(500).json({ message: 'Error logging in', error }).send();
