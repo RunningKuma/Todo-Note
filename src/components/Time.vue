@@ -9,5 +9,5 @@ setInterval(() => {
 </script>
 
 <template>
-  <h1 class="">{{ time.toLocaleString() }}</h1>
+  <h1 class="w-[150px]">{{ time.toLocaleString() }}</h1>
 </template>

@@ -1,116 +1,56 @@
+<script setup lang="ts">
+import { Todo } from '@/api/types/todo';
+import { handle } from '@primeuix/themes/aura/imagecompare';
+import { Button, Checkbox, Rating } from 'primevue';
+import { ref } from 'vue';
+
+const { todo } = defineProps<{ todo: Todo }>()
+
+const emit = defineEmits<{
+  toggle: [todo: Todo];
+  edit: [todo: Todo];
+  delete: [todo: Todo];
+}>();
+
+const deleteConfirm = ref(false);
+let deleteTimeout: ReturnType<typeof setTimeout> | null = null;
+function handleDelete() {
+  if (deleteConfirm.value) {
+    emit('delete', todo);
+    deleteConfirm.value = false;
+    if (deleteTimeout)
+      clearTimeout(deleteTimeout);
+  } else {
+    deleteConfirm.value = true;
+    deleteTimeout = setTimeout(() => {
+      deleteConfirm.value = false;
+    }, 2000);
+  }
+}
+</script>
+
 <template>
-  <div class="todo-item p-4 border rounded-lg shadow-sm bg-white hover:shadow-md transition-shadow">
-    <div class="flex items-start gap-3">
-      <!-- 完成状态复选框 -->
-      <Checkbox v-model="todo.completed" :binary="true" @change="$emit('toggle', todo)" class="mt-1" />
-
-      <!-- 任务内容 -->
-      <div class="flex-1 min-w-0">
-        <h3 :class="[
-          'text-lg font-medium',
-          todo.completed ? 'line-through text-gray-500' : 'text-gray-900'
-        ]">
-          {{ todo.title }}
-        </h3>
-
-        <p v-if="todo.description" :class="[
-          'text-sm mt-1',
-          todo.completed ? 'text-gray-400' : 'text-gray-600'
-        ]">
-          {{ todo.description }}
-        </p>
-
-        <!-- 元数据 -->
-        <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
-          <!-- 优先级 -->
-          <Tag v-if="todo.priority" :value="priorityLabels[todo.priority]"
-            :severity="getPrioritySeverity(todo.priority)" class="text-xs" />
-
-          <!-- 截止日期 -->
-          <span v-if="todo.dueDate" class="flex items-center gap-1">
-            <i class="pi pi-calendar"></i>
-            {{ formatDate(todo.dueDate) }}
-          </span>
-          <!-- 分类 -->
-          <span v-if="todo.category" class="flex items-center gap-1">
-            <i class="pi pi-tag"></i>
-            {{ todo.category }}
-          </span>
-
-          <!-- 创建时间 -->
-          <span class="flex items-center gap-1">
-            <i class="pi pi-clock"></i>
-            {{ formatDate(todo.createdAt) }}
-          </span>
-        </div>
+  <div class="w-full h-15 px-5 py-2.5 flex items-center gap-2.5">
+    <Checkbox class="" :value="todo.status.completed === 'completed'" />
+    <h3 class="text-xl font-bold">{{ todo.info.title }}</h3>
+    <div class="text-xs flex flex-col gap-1">
+      <Rating v-model="todo.info.priority" class="w-20" :stars="5" readonly />
+      <div>
+        <i class="pi pi-clock align-middle"></i><span class="ml-0.5">{{ todo.info.ddl?.toLocaleString() }}</span>
       </div>
-
-      <!-- 操作按钮 -->
-      <div class="flex gap-2">
-        <Button icon="pi pi-pencil" text rounded size="small" @click="$emit('edit', todo)"
-          class="text-gray-600 hover:text-blue-600" />
-        <Button icon="pi pi-trash" text rounded size="small" @click="$emit('delete', todo)"
-          class="text-gray-600 hover:text-red-600" />
-      </div>
+    </div>
+    <div class="">
+      <i class="pi pi-tag align-middle"></i>
+      <span class="ml-0.5">{{ todo.info.tags?.join(', ') }}</span>
+    </div>
+    <div class="ml-auto">
+      <Button class="" size="small" icon="pi pi-pencil" variant="text" severity="secondary" />
+      <Button class="" size="small" :variant="deleteConfirm ? '' : 'text'"
+        :severity="deleteConfirm ? 'danger' : 'secondary'" @click="handleDelete">
+        <i class="pi pi-trash"></i>
+        <span
+          :class="'text-white text-xs text-nowrap inline-block overflow-hidden transition-all duration-300 ' + (deleteConfirm ? 'w-17' : 'size-0')">确定删除吗？</span>
+      </Button>
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue';
-import { Button, Checkbox, Tag } from 'primevue';
-import type { Todo_Old } from '@/api/types/todo';
-
-interface Props {
-  todo: Todo_Old;
-}
-
-const props = defineProps<Props>();
-
-const emit = defineEmits<{
-  toggle: [todo: Todo_Old];
-  edit: [todo: Todo_Old];
-  delete: [todo: Todo_Old];
-}>();
-
-// 优先级标签映射
-const priorityLabels = {
-  low: '低优先级',
-  medium: '中优先级',
-  high: '高优先级'
-};
-
-// 获取优先级颜色
-const getPrioritySeverity = (priority: string) => {
-  switch (priority) {
-    case 'high':
-      return 'danger';
-    case 'medium':
-      return 'warning';
-    case 'low':
-      return 'info';
-    default:
-      return 'secondary';
-  }
-};
-
-// 格式化日期
-const formatDate = (date: Date | string) => {
-  const d = new Date(date);
-  return d.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
-</script>
-
-<style scoped>
-.todo-item {
-  transition: all 0.2s ease-in-out;
-}
-
-.todo-item:hover {
-  transform: translateY(-1px);
-}
-</style>
