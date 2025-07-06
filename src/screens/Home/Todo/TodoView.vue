@@ -28,13 +28,14 @@ const actions: PageHeaderAction[] = [
 ]
 
 // filter options
-type FliterOptions<T> = {
+type FliterOption<T> = {
   label: string;
   value: T;
-}[]
+}
+type FliterOptions<T> = FliterOption<T>[];
 type TodoStatusWithAll = TodoStatus['completed'] | 'all';
 type DdlFliter = 'all' | 'today' | 'tomorrow' | 'day_3' | 'week_1' | 'week_2' | 'month_1' | 'year_1';
-const statusFliter = ref<TodoStatusWithAll>('all');
+const statusFliter = ref<FliterOption<TodoStatusWithAll>>({ label: '全部', value: 'all' });
 const statusFliterOptions: FliterOptions<TodoStatusWithAll> = [
   { label: '全部', value: 'all' },
   { label: '已完成', value: 'completed' },
@@ -42,7 +43,7 @@ const statusFliterOptions: FliterOptions<TodoStatusWithAll> = [
   { label: '未开始', value: 'not-started' },
   { label: '暂缓', value: 'pending' },
 ];
-const priorityFliter = ref<number>(-1);
+const priorityFliter = ref<FliterOption<number>>({ label: '全部', value: -1 });
 const priorityFliterOptions: FliterOptions<number> = [
   { label: '全部', value: -1 },
   { label: '极高', value: 5 },
@@ -51,39 +52,39 @@ const priorityFliterOptions: FliterOptions<number> = [
   { label: '较低', value: 2 },
   { label: '低', value: 1 },
 ];
-const ddlFliter = ref<DdlFliter>('all');
+const ddlFliter = ref<FliterOption<DdlFliter>>({ label: '全部', value: 'all' });
 const ddlFliterOptions: FliterOptions<DdlFliter> = [
   { label: '全部', value: 'all' },
   { label: '今天', value: 'today' },
   { label: '明天', value: 'tomorrow' },
   { label: '3天内', value: 'day_3' },
-  { label: '本周', value: 'week_1' },
+  { label: '一周内', value: 'week_1' },
   { label: '两周内', value: 'week_2' },
-  { label: '本月', value: 'month_1' },
-  { label: '本年', value: 'year_1' },
+  { label: '一个月内', value: 'month_1' },
+  { label: '一年内', value: 'year_1' },
 ];
 const searchKey = ref<string>('');
 
 // 筛选功能
-let todos = ref<Todo[]>(testTodo)
+let todos = testTodo
 // @todo 下方筛选无效暂时屏蔽 to implement
-todos.value = testTodo ?? computed(() => todos.value.filter(todo => todo.info.title.includes(searchKey.value))
+let fliterTodos = computed(() => todos.filter(todo => todo.info.title.includes(searchKey.value))
   .filter(todo => {
-    if (statusFliter.value === 'all') return true;
+    if (statusFliter.value.value === 'all') return true;
     if (todo.status.completed === undefined) return false; // 如果没有设置状态，则不显示
-    return todo.status.completed === statusFliter.value;
+    return todo.status.completed === statusFliter.value.value;
   })
   .filter(todo => {
-    if (priorityFliter.value === -1) return true; // -1 显示全部
+    if (priorityFliter.value.value === -1) return true; // -1 显示全部
     if (todo.info.priority === undefined) return false; // 如果没有设置优先级，则不显示
-    return todo.info.priority === priorityFliter.value;
+    return todo.info.priority === priorityFliter.value.value;
   })
   .filter(todo => {
-    if (ddlFliter.value === 'all') return true;
+    if (ddlFliter.value.value === 'all') return true;
     if (todo.info.ddl === undefined) return false; // 如果没有设置截止日期，则不显示
     const dueDate = new Date(todo.info.ddl);
     const now = new Date();
-    switch (ddlFliter.value) {
+    switch (ddlFliter.value.value) {
       case 'today':
         return dueDate.toDateString() === now.toDateString();
       case 'tomorrow':
@@ -117,7 +118,7 @@ todos.value = testTodo ?? computed(() => todos.value.filter(todo => todo.info.ti
 <template>
   <div class="h-full flex flex-col">
     <PageHeader v-model="visible" title="Todo" :actions="actions" />
-    <DataView :value="todos" class="h-full relative overflow-y-auto flex flex-col" lazy>
+    <DataView :value="fliterTodos" class="h-full relative overflow-y-auto flex flex-col" lazy>
       <template #header>
         <!-- @todo sticky header -->
         <div class="w-full h-10 flex items-center gap-2.5">
