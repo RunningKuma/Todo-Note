@@ -3,7 +3,7 @@ import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { testTodo } from '@/api/constants/test';
 import { DataView, FloatLabel, InputIcon, InputText, Select } from 'primevue';
 import { Todo, TodoStatus } from '@/api/types/todo';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import TodoItem from './components/TodoItem.vue';
 
 const visible = defineModel<boolean>({
@@ -27,6 +27,7 @@ const actions: PageHeaderAction[] = [
   }
 ]
 
+// filter options
 type FliterOptions<T> = {
   label: string;
   value: T;
@@ -63,8 +64,10 @@ const ddlFliterOptions: FliterOptions<DdlFliter> = [
 ];
 const searchKey = ref<string>('');
 
-let todos = testTodo
-todos = todos.filter(todo => todo.info.title.includes(searchKey.value))
+// 筛选功能
+let todos = ref<Todo[]>(testTodo)
+// @todo 下方筛选无效暂时屏蔽 to implement
+todos.value = testTodo ?? computed(() => todos.value.filter(todo => todo.info.title.includes(searchKey.value))
   .filter(todo => {
     if (statusFliter.value === 'all') return true;
     if (todo.status.completed === undefined) return false; // 如果没有设置状态，则不显示
@@ -109,7 +112,7 @@ todos = todos.filter(todo => todo.info.title.includes(searchKey.value))
         return dueDate <= year1;
     }
     return false;
-  });
+  }));
 </script>
 <template>
   <div class="h-full flex flex-col">
