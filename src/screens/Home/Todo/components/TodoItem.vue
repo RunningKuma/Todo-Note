@@ -2,7 +2,7 @@
 import { Todo } from '@/api/types/todo';
 import { handle } from '@primeuix/themes/aura/imagecompare';
 import { Button, Checkbox, Rating } from 'primevue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const { todo } = defineProps<{ todo: Todo }>()
 
@@ -11,6 +11,8 @@ const emit = defineEmits<{
   edit: [todo: Todo];
   delete: [todo: Todo];
 }>();
+
+const completed = computed(() => todo.status.completed === 'completed');
 
 const deleteConfirm = ref(false);
 let deleteTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -31,7 +33,7 @@ function handleDelete() {
 
 <template>
   <div class="w-full h-15 px-5 py-2.5 flex items-center gap-2.5">
-    <Checkbox class="" :value="todo.status.completed === 'completed'" />
+    <Checkbox class="" v-model="completed" binary readonly />
     <h3 class="text-xl font-bold">{{ todo.info.title }}</h3>
     <div class="text-xs flex flex-col gap-1">
       <Rating v-model="todo.info.priority" class="w-20" :stars="5" readonly />

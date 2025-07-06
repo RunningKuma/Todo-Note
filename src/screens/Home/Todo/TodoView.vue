@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { testTodo } from '@/api/constants/test';
-import { DataView, FloatLabel, InputIcon, InputText, Select } from 'primevue';
+import { DataView, FloatLabel, IconField, InputIcon, InputText, Select } from 'primevue';
 import { Todo, TodoStatus } from '@/api/types/todo';
 import { computed, ref } from 'vue';
 import TodoItem from './components/TodoItem.vue';
@@ -39,9 +39,9 @@ const statusFliter = ref<FliterOption<TodoStatusWithAll>>({ label: '全部', val
 const statusFliterOptions: FliterOptions<TodoStatusWithAll> = [
   { label: '全部', value: 'all' },
   { label: '已完成', value: 'completed' },
-  { label: '进行中', value: 'in-progress' },
+  // { label: '进行中', value: 'in-progress' },
   { label: '未开始', value: 'not-started' },
-  { label: '暂缓', value: 'pending' },
+  // { label: '暂缓', value: 'pending' },
 ];
 const priorityFliter = ref<FliterOption<number>>({ label: '全部', value: -1 });
 const priorityFliterOptions: FliterOptions<number> = [
@@ -134,18 +134,17 @@ let fliterTodos = computed(() => todos.filter(todo => todo.info.title.includes(s
             placeholder="ddl" />
 
           <FloatLabel class="ml-auto" variant="on">
-            <label for="searchInput">搜索</label>
             <IconField>
               <InputText id="searchInput" class="h-8" size="small" v-model="searchKey" />
-              <!-- 😡 -->
-              <InputIcon class="pi pi-search relative right-6" />
+              <InputIcon class="pi pi-search " />
             </IconField>
+            <label for="searchInput">搜索</label>
           </FloatLabel>
         </div>
       </template>
       <template #list="{ items }">
         <div class="flex flex-col">
-          <TodoItem v-for="todo in (items as Todo[])" :key="todo.info.id" :todo="todo" />
+          <TodoItem :todo="todo" v-for="todo in (items as Todo[])" :key="todo.info.id" />
         </div>
       </template>
     </DataView>
