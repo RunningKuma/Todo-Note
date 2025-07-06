@@ -11,5 +11,5 @@ export type UserStore = {
 }
 export type UserData = {
 	info: UserInfo,
-	Store: UserStore
+	store: UserStore
 }

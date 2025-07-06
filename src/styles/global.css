@@ -20,3 +20,15 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.btn-scale {
+  @apply transition-all duration-300 hover:scale-110 active:scale-90;
+}
+
+.btn-scale-sm {
+  @apply transition-all duration-300 hover:scale-105 active:scale-95;
+}
+
+.btn-scale-lg {
+  @apply transition-all duration-300 hover:scale-120 active:scale-80;
+}
