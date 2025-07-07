@@ -4,6 +4,7 @@ import { request } from '../utils/request';
 import { ApiResponse } from '../types/request';
 import { TodoId } from '../types/gerneral';
 import { AffectNumber } from '../types/db';
+import { testTodo } from '../constants/test';
 
 // TODO操作API
 export const todoOps = {
@@ -11,6 +12,7 @@ export const todoOps = {
    * 获取用户的所有TODO
    */
   getTodos: async (): Promise<ApiResponse<Todo[]>> => {
+    // return { success: true, data: testTodo }
     const response = await request.get('/todos')
       .catch(res => {
         return { success: false, ...res.response } as AxiosResponse;

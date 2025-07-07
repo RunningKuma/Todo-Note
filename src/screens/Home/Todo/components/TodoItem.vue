@@ -33,7 +33,7 @@ function handleDelete() {
 
 <template>
   <div class="w-full h-15 px-5 py-2.5 flex items-center gap-2.5">
-    <Checkbox class="" v-model="completed" binary readonly />
+    <Checkbox class="" :default-value="completed" binary @value-change="() => emit('toggle', todo)" />
     <h3 class="text-xl font-bold">{{ todo.info.title }}</h3>
     <div class="text-xs flex flex-col gap-1">
       <Rating v-model="todo.info.priority" class="w-20" :stars="5" readonly />
