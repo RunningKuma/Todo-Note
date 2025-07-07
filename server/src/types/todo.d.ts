@@ -1,3 +1,5 @@
+import { TodoTags } from "./gerneral";
+
 //@todo to inplement
 export type Todo_Old = {
 	id: string;

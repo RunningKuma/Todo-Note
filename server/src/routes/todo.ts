@@ -11,7 +11,7 @@ router.use(authenticateToken);
 // TODO CRUD 操作
 router.get('/', todoController.getTodos);              // 获取所有TODO
 router.post('/', todoController.createTodo);           // 创建新TODO
-router.put('/:id', todoController.updateTodo);         // 更新TODO
+router.put('/', todoController.updateTodo);         // 更新TODO
 router.delete('/:id', todoController.deleteTodo);      // 删除TODO
 
 // TODO 状态操作

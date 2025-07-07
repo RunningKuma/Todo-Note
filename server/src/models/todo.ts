@@ -1,17 +1,6 @@
 import { db } from '@server/config/database';
-
-export interface TodoData {
-  id?: number;
-  user_id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  priority: 'low' | 'medium' | 'high';
-  due_date?: string;
-  category?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+import { UserId } from '@server/types/gerneral';
+import { Todo as TodoType } from '@server/types/todo';
 
 export const Todo = {
   /**
@@ -35,24 +24,24 @@ export const Todo = {
   /**
    * 创建新的TODO
    */
-  async create(todoData: Omit<TodoData, 'id' | 'created_at' | 'updated_at'>): Promise<TodoData> {
+  async create(todoData: TodoType, userId: UserId): Promise<TodoType> {
     try {
       const result = await db.execute(
-        `INSERT INTO todos (user_id, title, description, completed, priority, due_date, category, updated_at) 
+        `INSERT INTO todos (user_id, title, description, completed, priority, due_date, category, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
         [
-          todoData.user_id,
-          todoData.title,
-          todoData.description || null,
-          todoData.completed ? 1 : 0,
-          todoData.priority,
-          todoData.due_date || null,
-          todoData.category || null
+          userId,
+          todoData.info.title,
+          todoData.info.description || null,
+          todoData.status.completed ? 1 : 0,
+          todoData.info.priority,
+          todoData.info.ddl || null,
+          todoData.info.tags || null
         ]
       );
 
       // 返回创建的TODO
-      const created = await db.queryOne<TodoData>(
+      const created = await db.queryOne<TodoType>(
         'SELECT * FROM todos WHERE id = ?',
         [result]
       );
@@ -71,9 +60,9 @@ export const Todo = {
   /**
    * 获取用户的所有TODO
    */
-  async findByUserId(userId: string): Promise<TodoData[]> {
+  async findByUserId(userId: string): Promise<TodoType[]> {
     try {
-      const todos = await db.query<TodoData>(
+      const todos = await db.query<TodoType>(
         'SELECT * FROM todos WHERE user_id = ? ORDER BY created_at DESC',
         [userId]
       );
@@ -87,9 +76,9 @@ export const Todo = {
   /**
    * 根据ID获取TODO
    */
-  async findById(id: number): Promise<TodoData | null> {
+  async findById(id: number): Promise<TodoType | null> {
     try {
-      const todo = await db.queryOne<TodoData>(
+      const todo = await db.queryOne<TodoType>(
         'SELECT * FROM todos WHERE id = ?',
         [id]
       );
@@ -103,7 +92,7 @@ export const Todo = {
   /**
    * 更新TODO
    */
-  async update(id: number, todoData: Partial<TodoData>): Promise<TodoData> {
+  async update(id: number, todoData: Partial<TodoType>): Promise<TodoType> {
     try {
       const updateFields: string[] = [];
       const updateValues: any[] = [];
@@ -145,7 +134,7 @@ export const Todo = {
         updateValues
       );
 
-      const updated = await db.queryOne<TodoData>(
+      const updated = await db.queryOne<TodoType>(
         'SELECT * FROM todos WHERE id = ?',
         [id]
       );
@@ -177,7 +166,7 @@ export const Todo = {
   /**
    * 切换TODO完成状态
    */
-  async toggleCompleted(id: number): Promise<TodoData> {
+  async toggleCompleted(id: number): Promise<TodoType> {
     try {
       const todo = await this.findById(id);
       if (!todo) {
@@ -194,9 +183,9 @@ export const Todo = {
   /**
    * 按分类获取TODO
    */
-  async findByCategory(userId: string, category: string): Promise<TodoData[]> {
+  async findByCategory(userId: string, category: string): Promise<TodoType[]> {
     try {
-      const todos = await db.query<TodoData>(
+      const todos = await db.query<TodoType>(
         'SELECT * FROM todos WHERE user_id = ? AND category = ? ORDER BY created_at DESC',
         [userId, category]
       );
@@ -210,9 +199,9 @@ export const Todo = {
   /**
    * 获取已完成的TODO
    */
-  async findCompleted(userId: string): Promise<TodoData[]> {
+  async findCompleted(userId: string): Promise<TodoType[]> {
     try {
-      const todos = await db.query<TodoData>(
+      const todos = await db.query<TodoType>(
         'SELECT * FROM todos WHERE user_id = ? AND completed = 1 ORDER BY updated_at DESC',
         [userId]
       );
@@ -226,9 +215,9 @@ export const Todo = {
   /**
    * 获取未完成的TODO
    */
-  async findPending(userId: string): Promise<TodoData[]> {
+  async findPending(userId: string): Promise<TodoType[]> {
     try {
-      const todos = await db.query<TodoData>(
+      const todos = await db.query<TodoType>(
         'SELECT * FROM todos WHERE user_id = ? AND completed = 0 ORDER BY priority DESC, due_date ASC',
         [userId]
       );

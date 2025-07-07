@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
-import { TodoData } from '../models/todo';
+import { TodoType } from '../models/todo';
 import { TodoService } from '../services/todoService';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { ApiResponse } from '@server/types/request';
+import { Todo } from '@server/types/todo';
 
 export class TodoController {
   private todoService: TodoService;
@@ -12,7 +14,7 @@ export class TodoController {
   /**
    * 获取用户的所有TODO
    */
-  public getTodos = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public getTodos = async (req: AuthenticatedRequest, res: Response<ApiResponse<Todo[]>>): Promise<void> => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -30,8 +32,7 @@ export class TodoController {
       console.error('Error getting todos:', error);
       res.status(500).json({
         success: false,
-        message: '获取TODO列表失败',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };
@@ -39,7 +40,7 @@ export class TodoController {
   /**
    * 创建新的TODO
    */
-  public createTodo = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  public createTodo = async (req: AuthenticatedRequest, res: Response<ApiResponse<Todo>>): Promise<void> => {
     try {
       const userId = req.user?.id;
       if (!userId) {
@@ -54,7 +55,7 @@ export class TodoController {
         return;
       }
 
-      const todoData: Omit<TodoData, 'id' | 'created_at' | 'updated_at'> = {
+      const todoData: Omit<TodoType, 'id' | 'created_at' | 'updated_at'> = {
         user_id: userId,
         title: title.trim(),
         description: description?.trim(),
@@ -74,8 +75,7 @@ export class TodoController {
       console.error('Error creating todo:', error);
       res.status(500).json({
         success: false,
-        message: '创建TODO失败',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   };
@@ -108,7 +108,7 @@ export class TodoController {
       }
 
       const { title, description, completed, priority, due_date, category } = req.body;
-      const updateData: Partial<TodoData> = {};
+      const updateData: Partial<TodoType> = {};
 
       if (title !== undefined) updateData.title = title.trim();
       if (description !== undefined) updateData.description = description?.trim();
