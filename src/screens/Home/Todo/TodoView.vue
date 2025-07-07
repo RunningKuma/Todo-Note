@@ -166,6 +166,7 @@ function handleCreateTodo(todo: Todo) {
     if (res.success) {
       todos.value.push(todo);
       handleTodoDialogToggle(false);
+      toast.success('创建成功');
       console.log('Todo created successfully:', res.data);
     }
     else {
@@ -180,6 +181,7 @@ function handleUpdateTodo(todo: Todo) {
     if (res.success) {
       todos.value = todos.value.map(t => t.info.id === todo.info.id ? todo : t);
       handleTodoDialogToggle(false);
+      toast.success('更新成功');
       console.log('Todo updated successfully:', res.data);
     }
     else {

@@ -35,6 +35,7 @@ function handleDelete() {
   <div class="w-full h-15 px-5 py-2.5 flex items-center gap-2.5">
     <Checkbox class="" :default-value="completed" binary @value-change="() => emit('toggle', todo)" />
     <h3 class="text-xl font-bold">{{ todo.info.title }}</h3>
+    <!-- @todo bug: 不存在 ddl 时 tags 布局重叠 -->
     <div class="text-xs flex flex-col gap-1">
       <Rating v-model="todo.info.priority" class="w-20" :stars="5" readonly />
       <div>
