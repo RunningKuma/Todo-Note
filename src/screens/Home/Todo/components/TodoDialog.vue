@@ -1,71 +1,76 @@
 <template>
-  <Dialog v-model:visible="visible" :header="header" modal class="w-96">
-    <form @submit.prevent="handleSubmit" class="space-y-4">
-      <!-- 标题 -->
-      <div>
-        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
-          任务标题 <span class="text-red-500">*</span>
-        </label>
-        <InputText id="title" v-model="formData.info.title" placeholder="请输入任务标题" class="w-full"
-          :invalid="!!errors.title" required />
-        <small v-if="errors.title" class="text-red-500">{{ errors.title }}</small>
-      </div>
+  <Dialog v-model:visible="visible" :header="header" modal class="w-96 px-8 py-5">
+    <template #container="{ closeCallback }">
+      <h2 class="text-2xl font-bold text-primary">{{ header }}</h2>
 
-      <!-- 描述 -->
-      <div>
-        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-          任务描述
-        </label>
-        <Textarea id="description" v-model="formData.info.description" placeholder="请输入任务描述（可选）" rows="3"
-          class="w-full" />
-      </div>
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <!-- 标题 -->
+        <div>
+          <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+            任务标题 <span class="text-red-500">*</span>
+          </label>
+          <InputText id="title" v-model="formData.info.title" placeholder="请输入任务标题" class="w-full"
+            :invalid="!!errors.title" required />
+          <small v-if="errors.title" class="text-red-500">{{ errors.title }}</small>
+        </div>
 
-      <!-- 优先级 -->
-      <div>
-        <label for="priority" class="text-sm font-medium text-gray-700 mb-1">
-          优先级
-        </label>
-        <Rating id="priority" v-model="formData.info.priority" :stars="5"
-          class="w-fit ml-2 align-middle inline-flex! gap-3!" />
-        <!-- <Dropdown id="priority" v-model="formData.info.priority" :options="priorityOptions" optionLabel="label"
-          optionValue="value" placeholder="选择优先级" class="w-full" /> -->
-      </div>
+        <!-- 描述 -->
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+            任务描述
+          </label>
+          <Textarea id="description" v-model="formData.info.description" placeholder="请输入任务描述（可选）" rows="3"
+            class="w-full" />
+        </div>
 
-      <!-- 截止日期 -->
-      <div>
-        <label for="dueDate" class="block text-sm font-medium text-gray-700 mb-1">
-          截止日期
-        </label>
-        <DatePicker id="dueDate" v-model="formData.info.ddl" showTime placeholder="选择截止日期" class="w-full"
-          dateFormat="yy-mm-dd" :minDate="new Date()" />
-      </div>
+        <!-- 优先级 -->
+        <div>
+          <label for="priority" class="text-sm font-medium text-gray-700 mb-1">
+            优先级
+          </label>
+          <Rating id="priority" v-model="formData.info.priority" :stars="5"
+            class="w-fit ml-2 align-middle inline-flex! gap-3!" />
+          <!-- <Dropdown id="priority" v-model="formData.info.priority" :options="priorityOptions" optionLabel="label"
+            optionValue="value" placeholder="选择优先级" class="w-full" /> -->
+        </div>
 
-      <!-- 分类 -->
-      <div>
-        <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">
-          分类（使用中英文逗号分隔）
-        </label>
-        <!-- @todo use multi select instead -->
-        <!-- @todo bug: 无法正确显示 tags -->
-        <InputText id="tags" :v-model="tags" @value-change="handleTagsChange" placeholder="请输入标签，用逗号分隔（可选）"
-          class="w-full" />
-      </div>
+        <!-- 截止日期 -->
+        <div>
+          <label for="dueDate" class="block text-sm font-medium text-gray-700 mb-1">
+            截止日期
+          </label>
+          <DatePicker id="dueDate" v-model="formData.info.ddl" showTime placeholder="选择截止日期" class="w-full"
+            dateFormat="yy-mm-dd" :minDate="new Date()" />
+        </div>
 
-      <!-- 笔记 -->
-      <div>
-        <label for="note_link" class="block text-sm font-medium text-gray-700 mb-1">
-          笔记
-        </label>
-        <!-- @todo bug: formData 没有存入 note_link -->
-        <InputText id="note_link" :v-model="formData.info.note_link" placeholder="输入笔记的 id 或链接（可选）" class="w-full" />
-      </div>
+        <!-- 分类 -->
+        <div>
+          <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">
+            分类（使用中英文逗号分隔）
+          </label>
+          <!-- @todo use multi select instead -->
+          <!-- @todo bug: 无法正确显示 tags -->
+          <InputText id="tags" :v-model="tags" @value-change="handleTagsChange" placeholder="请输入标签，用逗号分隔（可选）"
+            class="w-full" />
+        </div>
 
-      <!-- 操作按钮 -->
-      <div class="flex justify-end gap-2 pt-4">
-        <Button type="button" label="取消" severity="secondary" @click="$emit('cancel')" />
-        <Button type="submit" label="保存更改" :loading="loading" />
-      </div>
-    </form>
+        <!-- 笔记 -->
+        <div>
+          <label for="note_link" class="block text-sm font-medium text-gray-700 mb-1">
+            笔记
+          </label>
+          <!-- @todo bug: formData 没有存入 note_link -->
+          <InputText id="note_link" :v-model="formData.info.note_link" placeholder="输入笔记的 id 或链接（可选）" class="w-full" />
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="flex justify-end gap-2 pt-4">
+          <!-- @todo fail to fix sudden close -->
+          <Button type="button" label="取消" severity="secondary" @click="emit('cancel')" />
+          <Button type="submit" label="保存更改" :loading="loading" />
+        </div>
+      </form>
+    </template>
   </Dialog>
 </template>
 
@@ -170,6 +175,7 @@ const handleSubmit = async () => {
     loading.value = false;
   }
 };
+
 
 // onMounted(() => {
 //   initializeForm();
