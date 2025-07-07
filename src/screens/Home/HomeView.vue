@@ -9,7 +9,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import { Toast } from "primevue";
 
 const displayMessage = ref("");
-const userData = userOps.getUserData();
+const userData = await userOps.getUserData();
 
 const visible = ref(true);
 
@@ -17,7 +17,7 @@ const visible = ref(true);
 
 <template>
   <div :class="['container', visible ? 'ml-sidebar' : '']">
-    <SideBar v-model="visible" :username="userData.username"></SideBar>
+    <SideBar v-model="visible" :username="userData?.info.username"></SideBar>
     <div class="size-full p-4">
       <!-- <DrawerTrigger v-model="visible" /> -->
       <RouterView v-model="visible" />
