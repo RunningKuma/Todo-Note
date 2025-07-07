@@ -22,11 +22,13 @@
 
       <!-- 优先级 -->
       <div>
-        <label for="priority" class="block text-sm font-medium text-gray-700 mb-1">
+        <label for="priority" class="text-sm font-medium text-gray-700 mb-1">
           优先级
         </label>
-        <Dropdown id="priority" v-model="formData.info.priority" :options="priorityOptions" optionLabel="label"
-          optionValue="value" placeholder="选择优先级" class="w-full" />
+        <Rating id="priority" v-model="formData.info.priority" :stars="5"
+          class="w-fit ml-2 align-middle inline-flex! gap-3!" />
+        <!-- <Dropdown id="priority" v-model="formData.info.priority" :options="priorityOptions" optionLabel="label"
+          optionValue="value" placeholder="选择优先级" class="w-full" /> -->
       </div>
 
       <!-- 截止日期 -->
@@ -34,8 +36,8 @@
         <label for="dueDate" class="block text-sm font-medium text-gray-700 mb-1">
           截止日期
         </label>
-        <DatePicker id="dueDate" v-model="formData.info.ddl" placeholder="选择截止日期" class="w-full" dateFormat="yy-mm-dd"
-          :minDate="new Date()" />
+        <DatePicker id="dueDate" v-model="formData.info.ddl" showTime placeholder="选择截止日期" class="w-full"
+          dateFormat="yy-mm-dd" :minDate="new Date()" />
       </div>
 
       <!-- 分类 -->
@@ -46,6 +48,15 @@
         <!-- @todo use multi select instead -->
         <InputText id="category" :v-model="tags" @value-change="handleTagsChange" placeholder="请输入标签，用逗号分隔（可选）"
           class="w-full" />
+      </div>
+
+      <!-- 笔记 -->
+      <div>
+        <label for="note_link" class="block text-sm font-medium text-gray-700 mb-1">
+          笔记
+        </label>
+        <!-- @todo use multi select instead -->
+        <InputText id="note_link" :v-model="formData.info.note_link" placeholder="输入笔记的 id 或链接（可选）" class="w-full" />
       </div>
 
       <!-- 操作按钮 -->
@@ -65,7 +76,8 @@ import {
   Textarea,
   Dropdown,
   DatePicker,
-  Dialog
+  Dialog,
+  Rating
 } from 'primevue';
 import type { Todo } from '@/api/types/todo';
 
