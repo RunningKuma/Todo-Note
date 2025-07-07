@@ -2,6 +2,7 @@ type Id = string
 
 export type TodoId = Id
 export type NoteId = Id
+export type UserId = Id
 
 type Tags = string[]
 

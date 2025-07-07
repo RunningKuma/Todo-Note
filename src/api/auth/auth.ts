@@ -56,6 +56,7 @@ export const userOps = {
   // 从服务器获取用户数据
   fetchUserData: async (): Promise<UserData | undefined> => {
     //@todo implement server user api
+    _userData = testUserData
     return testUserData;
 
     try {
