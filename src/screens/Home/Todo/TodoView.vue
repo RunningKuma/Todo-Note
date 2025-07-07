@@ -150,7 +150,8 @@ function handleTodoDialogToggle(visible: boolean, todo?: Todo) {
   // 传入则为编辑，设置为当前编辑的 todo
   else if (todo) {
     dialogAction = 'update';
-    dialogTodo.value = todo;
+    // 深拷贝 todo
+    dialogTodo.value = JSON.parse(JSON.stringify(todo));
   }
   // 不传入则为新建，创建一个新的 Todo
   else {
