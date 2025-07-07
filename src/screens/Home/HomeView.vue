@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import Button from "primevue/button";
 import { userOps } from "@/api/auth/auth";
@@ -6,6 +6,7 @@ import router from "@/router";
 import DrawerTrigger from "./SideBar/DrawerTrigger.vue";
 import SideBar from "./SideBar/SideBar.vue";
 import PageHeader from "@/components/PageHeader.vue";
+import { Toast } from "primevue";
 
 const displayMessage = ref("");
 const userData = userOps.getUserData();
@@ -21,9 +22,9 @@ const visible = ref(true);
       <!-- <DrawerTrigger v-model="visible" /> -->
       <RouterView v-model="visible" />
 
-
     </div>
   </div>
+  <Toast />
 </template>
 
 <style>

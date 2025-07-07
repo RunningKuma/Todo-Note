@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { testTodo } from '@/api/constants/test';
-import { DataView, Dialog, FloatLabel, IconField, InputIcon, InputText, Select } from 'primevue';
+import { DataView, Dialog, FloatLabel, IconField, InputIcon, InputText, Select, Toast } from 'primevue';
 import { Todo, TodoCreateData, TodoStatus } from '@/api/types/todo';
 import { computed, ref } from 'vue';
 import TodoItem from './components/TodoItem.vue';
@@ -10,6 +10,7 @@ import TodoDialog from './components/TodoDialog.vue';
 import { createEmptyTodo } from '@/api/utils/todo';
 import { todoOps } from '@/api/todo/todo';
 import { TodoId } from '@/api/types/gerneral';
+import { useToastHelper } from '@/api/utils/toast';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -71,8 +72,22 @@ const ddlFliterOptions: FliterOptions<DdlFliter> = [
 ];
 const searchKey = ref<string>('');
 
+// logic
+
+const toast = useToastHelper()
+let todos: Todo[] = [];
+todoOps.getTodos().then(res => {
+  if (res.success) {
+    // @todo to implement use ref or directly change？
+    todos = res.data!;
+  }
+  else {
+    throw new Error(res.message || '获取待办列表失败');
+  }
+}).catch(err => {
+  toast.error(err.message || '未知错误', '获取待办列表失败');
+});
 // 筛选功能
-let todos = testTodo
 // @todo 下方筛选无效暂时屏蔽 to implement
 let fliterTodos = computed(() => todos.filter(todo => todo.info.title.includes(searchKey.value))
   .filter(todo => {
