@@ -29,4 +29,4 @@ export type Todo = {
 	status: TodoStatus;
 }
 
-export type TodoCreateData = Omit<TodoInfo, 'id' | 'create'>
+export type TodoCreateData = Todo & { user_id: UserId; }

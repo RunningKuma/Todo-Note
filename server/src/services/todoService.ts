@@ -1,52 +1,53 @@
-import { Todo as TodoType } from '@server/types/todo';
-import { Todo, TodoType } from '../models/todo';
+import { Todo, TodoCreateData } from '@server/types/todo';
+import { TodoModel } from '../models/todo';
+import { TodoId, UserId } from '@server/types/gerneral';
 
 export class TodoService {
   constructor() {
     // 初始化TODO表
-    Todo.createTable();
+    TodoModel.createTable();
   }
 
   /**
    * 创建新的TODO
    */
-  async createTodo(todoData: TodoType): Promise<TodoType> {
-    return await Todo.create(todoData);
+  async createTodo(todoData: TodoCreateData) {
+    return await TodoModel.create(todoData);
   }
 
   /**
    * 获取用户的所有TODO
    */
-  async getUserTodos(userId: string) {
-    return await Todo.findByUserId(userId);
+  async getUserTodos(userId: UserId) {
+    return await TodoModel.findByUserId(userId);
   }
 
   // /**
   //  * 根据ID获取TODO
   //  */
-  // async getTodoById(id: number) {
-  //   return await Todo.findById(id);
-  // }
+  async getTodoById(id: TodoId) {
+    return await TodoModel.findById(id);
+  }
 
   /**
    * 更新TODO
    */
-  async updateTodo(id: number, todoData: TodoType) {
-    return await Todo.update(id, todoData);
+  async updateTodo(todo: TodoCreateData) {
+    return await TodoModel.update(todo);
   }
 
   /**
    * 删除TODO
    */
-  async deleteTodo(id: number) {
-    return await Todo.delete(id);
+  async deleteTodo(id: TodoId) {
+    return await TodoModel.delete(id);
   }
 
   /**
    * 切换TODO完成状态
    */
-  async toggleTodoCompleted(id: number) {
-    return await Todo.toggleCompleted(id);
+  async toggleTodoCompleted(id: TodoId, complete: boolean) {
+    return await TodoModel.toggleCompleted(id, complete);
   }
 
   // /**

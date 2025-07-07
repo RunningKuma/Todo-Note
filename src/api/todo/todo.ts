@@ -28,7 +28,7 @@ export const todoOps = {
   /**
    * 创建新的TODO
    */
-  createTodo: async (todoData: Todo): Promise<ApiResponse<Todo>> => {
+  createTodo: async (todoData: Todo): Promise<ApiResponse<number>> => {
     const response = await request.post('/todos', todoData)
       .catch(res => {
         console.error('创建TODO失败:', res);
@@ -37,7 +37,7 @@ export const todoOps = {
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 201) {
-      return response.data as ApiResponse<Todo>;
+      return response.data as ApiResponse<number>;
     // return { success: true, data: response.data as Todo, message: '' };
     }
 
@@ -46,7 +46,7 @@ export const todoOps = {
   /**
    * 更新TODO
    */
-  updateTodo: async (todo: Todo): Promise<ApiResponse<Todo>> => {
+  updateTodo: async (todo: Todo): Promise<ApiResponse<number>> => {
     const response = await request.put(`/todos`, todo)
       .catch(res => {
         console.error('更新TODO失败:', res);
@@ -55,7 +55,7 @@ export const todoOps = {
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 200) {
-      return response.data as ApiResponse<Todo>;
+      return response.data as ApiResponse<number>;
     // return { success: true, data: response.data as Todo, message: '' };
     }
 
@@ -84,9 +84,9 @@ export const todoOps = {
   /**
    * 切换TODO完成状态
    */
-  toggleTodo: async (id: TodoId, complete: boolean): Promise<ApiResponse<Todo>> => {
+  toggleTodo: async (id: TodoId, complete: boolean): Promise<ApiResponse<void>> => {
     //! 不能直接传输 false/true，必须传递标准 JSON
-    const response = await request.patch(`/todos/${id}/toggle`, { complete })
+    const response = await request.patch(`/todos/toggle`, { id, complete })
       .catch(res => {
         console.error('切换TODO状态失败:', res);
         return { success: false, ...res.response } as AxiosResponse;
@@ -94,7 +94,7 @@ export const todoOps = {
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 200) {
-      return response.data as ApiResponse<Todo>;
+      return response.data as ApiResponse<void>;
     // return { success: true, data: response.data as Todo, message: '' };
     }
 
