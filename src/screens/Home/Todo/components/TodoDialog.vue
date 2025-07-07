@@ -42,11 +42,12 @@
 
       <!-- 分类 -->
       <div>
-        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">
+        <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">
           分类（使用中英文逗号分隔）
         </label>
         <!-- @todo use multi select instead -->
-        <InputText id="category" :v-model="tags" @value-change="handleTagsChange" placeholder="请输入标签，用逗号分隔（可选）"
+        <!-- @todo bug: 无法正确显示 tags -->
+        <InputText id="tags" :v-model="tags" @value-change="handleTagsChange" placeholder="请输入标签，用逗号分隔（可选）"
           class="w-full" />
       </div>
 
@@ -55,7 +56,7 @@
         <label for="note_link" class="block text-sm font-medium text-gray-700 mb-1">
           笔记
         </label>
-        <!-- @todo use multi select instead -->
+        <!-- @todo bug: formData 没有存入 note_link -->
         <InputText id="note_link" :v-model="formData.info.note_link" placeholder="输入笔记的 id 或链接（可选）" class="w-full" />
       </div>
 
@@ -130,7 +131,7 @@ const priorityOptions = [
 //   formData.tags = todo.info.tags || [];
 // };
 
-const tags = ref<string>('');
+const tags = ref<string>(formData.info.tags?.join(', ') || '');
 function handleTagsChange(value: string | undefined) {
   // tags.value = value.split(/[，,]/g).map(tag => tag.trim()).filter(tag => tag);
   formData.info.tags = value?.split(/[，,]/g)

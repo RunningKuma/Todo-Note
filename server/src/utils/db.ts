@@ -23,8 +23,8 @@ export function dbToTodo(todo: TodoRawData): TodoCreateData {
     }
 
     // 验证并转换日期
-    const createdAt = new Date(todo.created_at);
-    if (isNaN(createdAt.getTime())) {
+    const createdAt = todo.created_at;
+    if (isNaN(new Date(todo.created_at).getTime())) {
       throw new Error(`Invalid created_at date for todo ${todo.id}: ${todo.created_at}`);
     }
 
@@ -56,7 +56,7 @@ export function dbToTodo(todo: TodoRawData): TodoCreateData {
         id: todo.id,
         title: todo.title,
         description: todo.description || undefined,
-        create: createdAt,
+        create: new Date(createdAt),
         priority: priority,
         ddl: ddl,
         tags: Array.isArray(parsedTags) ? parsedTags : undefined,

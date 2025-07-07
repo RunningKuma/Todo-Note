@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { TodoService } from '../services/todoService';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { ApiResponse } from '@server/types/request';
-import { Todo, TodoCreateData } from '@server/types/todo';
+import { Todo, TodoCreateData, TodoTrans } from '@server/types/todo';
 import { TodoId, UserId } from '@server/types/gerneral';
 export interface toggleRequestBody {
   id: TodoId;
@@ -51,7 +51,7 @@ export class TodoController {
         return;
       }
 
-      const { title } = (req.body as Todo).info;
+      const { title } = (req.body as TodoTrans).info;
 
 
       // @todo other check
@@ -60,9 +60,11 @@ export class TodoController {
         return;
       }
 
+      const { info, status } = req.body as TodoTrans;
       const todoData: TodoCreateData = {
         user_id: userId,
-        ...req.body as Todo
+        info: { ...info, create: new Date(info.create), ddl: info.ddl ? new Date(info.ddl) : undefined },
+        status
       };
 
       const response = await this.todoService.createTodo(todoData);
@@ -72,6 +74,11 @@ export class TodoController {
         message: 'TODO创建成功'
       });
     } catch (error) {
+      // @ts-expect-error unknown error type
+      if (error.code === 'SQLITE_CONSTRAINT') {
+        res.status(400).json({ success: false, message: 'Error：尝试创建相同 Todo' });
+        return;
+      }
       console.error('Error creating todo:', error);
       res.status(500).json({
         success: false,
@@ -91,15 +98,20 @@ export class TodoController {
         return;
       }
 
-      const { id } = (req.body as Todo).info;
+      const { id } = (req.body as TodoTrans).info;
 
       // 验证 TODO 访问权限
       const hasAccess = await this.validateTodoAccess(id, userId, res);
       if (!hasAccess) {
         return;
       }
-
-      const response = await this.todoService.updateTodo({ user_id: userId, ...req.body as Todo });
+      const { info, status } = req.body as TodoTrans;
+      const todoData: TodoCreateData = {
+        user_id: userId,
+        info: { ...info, create: new Date(info.create), ddl: info.ddl ? new Date(info.ddl) : undefined },
+        status
+      };
+      const response = await this.todoService.updateTodo(todoData);
       res.status(200).json({
         success: true,
         data: response,
@@ -126,7 +138,7 @@ export class TodoController {
         return;
       }
 
-      const { id } = (req.body as Todo).info;
+      const id = req.params.id as TodoId;
 
       // 验证 TODO 访问权限
       const hasAccess = await this.validateTodoAccess(id, userId, res);

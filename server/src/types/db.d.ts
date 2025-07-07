@@ -15,3 +15,4 @@ export type TodoRawData = Exclude<TodoInfo, 'create' | 'ddl' | 'tags'> & TodoSta
   tags?: string, // JSON 字符串格式的标签数组
 }
 // export type NoteRawData = NoteMeta
+export type AffectNumber = number

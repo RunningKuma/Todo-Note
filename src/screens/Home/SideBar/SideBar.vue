@@ -7,7 +7,7 @@ import router from '@/router';
 import { RouteLocationAsRelativeGeneric, useRoute } from 'vue-router';
 const visible = defineModel<boolean>();
 
-const { username } = defineProps<{ username: string }>();
+const { username } = defineProps<{ username?: string }>();
 
 const avatarPopup = ref();
 const handleLogout = () => {
@@ -42,7 +42,7 @@ const currentTabIndex = computed(() =>
         </SideBarTab>
       </div>
       <div class="mt-auto flex flex-col items-center gap-2">
-        <p class="font-bold">{{ username }}</p>
+        <p class="font-bold">{{ username ?? '未知用户' }}</p>
         <div @click="(event) => avatarPopup.toggle(event)">
           <Avatar icon="pi pi-user" size="xlarge" shape="circle" />
           <Popover ref="avatarPopup">

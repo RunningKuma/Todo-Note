@@ -1,5 +1,5 @@
 import { db } from '@server/config/database';
-import type { TodoRawData } from '@server/types/db.d';
+import type { AffectNumber, TodoRawData } from '@server/types/db.d';
 import type { TodoInfo, TodoStatus, TodoCreateData, Todo } from '@server/types/todo.d';
 import type { TodoId, UserId } from '@server/types/gerneral.d';
 import { dbToTodo, todoToDb, batchDbToTodo } from '@server/utils/db';
@@ -26,7 +26,7 @@ export const TodoModel = {
   /**
    * 创建新的TODO
    */
-  async create(todo: TodoCreateData): Promise<number> {
+  async create(todo: TodoCreateData): Promise<AffectNumber> {
     try {
       const dbData = todoToDb(todo);
       const res = await db.execute(
@@ -92,7 +92,7 @@ export const TodoModel = {
   /**
    * 更新TODO
    */
-  async update(todo: Partial<TodoCreateData>): Promise<number> {
+  async update(todo: Partial<TodoCreateData>): Promise<AffectNumber> {
     try {
       const updateFields: string[] = [];
       const updateValues: any[] = [];
@@ -116,7 +116,7 @@ export const TodoModel = {
       }
       if (todo.info.ddl) {
         updateFields.push('ddl = ?');
-        updateValues.push(todo.info.ddl?.toISOString() || null);
+        updateValues.push(todo.info.ddl || null);
       }
       if (todo.info.tags) {
         updateFields.push('tags = ?');
@@ -165,7 +165,7 @@ export const TodoModel = {
   /**
    * 切换TODO完成状态
    */
-  async toggleCompleted(id: TodoId, complete: boolean): Promise<number> {
+  async toggleCompleted(id: TodoId, complete: boolean): Promise<boolean> {
     try {
       const todo = await this.findById(id);
       if (!todo) {
@@ -174,7 +174,8 @@ export const TodoModel = {
 
       const newStatus: TodoStatus['completed'] = complete ? 'completed' : 'not-started';
       // @ts-expect-error part of TodoInfo
-      return await this.update({ info: { id }, status: { completed: newStatus } });
+      const response = await this.update({ info: { id }, status: { completed: newStatus } });
+      return response > 0 ? true : false
     } catch (error) {
       console.error('Error toggling todo completion:', error);
       throw error;

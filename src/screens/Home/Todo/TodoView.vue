@@ -75,11 +75,10 @@ const searchKey = ref<string>('');
 // logic
 
 const toast = useToastHelper()
-let todos: Todo[] = [];
+const todos = ref<Todo[]>([]);
 todoOps.getTodos().then(res => {
   if (res.success) {
-    // @todo to implement use ref or directly change？
-    todos = res.data!;
+    todos.value = res.data!;
   }
   else {
     throw new Error(res.message || '获取待办列表失败');
@@ -89,7 +88,7 @@ todoOps.getTodos().then(res => {
 });
 // 筛选功能
 // @todo 下方筛选无效暂时屏蔽 to implement
-let fliterTodos = computed(() => todos.filter(todo => todo.info.title.includes(searchKey.value))
+let fliterTodos = computed(() => todos.value.filter(todo => todo.info.title.includes(searchKey.value))
   .filter(todo => {
     if (statusFliter.value.value === 'all') return true;
     if (todo.status.completed === undefined) return false; // 如果没有设置状态，则不显示
@@ -161,30 +160,42 @@ function handleTodoDialogToggle(visible: boolean, todo?: Todo) {
 }
 function handleCreateTodo(todo: Todo) {
   // @todo to implement
-  return
+  // return
   todoOps.createTodo(todo).then(res => {
     if (res.success) {
+      todos.value.push(todo);
+      handleTodoDialogToggle(false);
       console.log('Todo created successfully:', res.data);
+    }
+    else {
+      toast.error(res.message || '创建失败，未知错误');
     }
   })
 }
 function handleUpdateTodo(todo: Todo) {
   // @todo to implement
-  return
+  // return
   todoOps.updateTodo(todo).then(res => {
     if (res.success) {
+      todos.value = todos.value.map(t => t.info.id === todo.info.id ? todo : t);
+      handleTodoDialogToggle(false);
       console.log('Todo updated successfully:', res.data);
+    }
+    else {
+      toast.error(res.message || '更新失败，未知错误');
     }
   })
 }
 function handleToggleTodo(todo: Todo) {
   // @todo to implement
-  return
+  // return
   todoOps.toggleTodo(todo.info.id, todo.status.completed === 'completed' ? false : true)
     .then(res => {
       if (res.success) {
-        // @todo to implement use ref or directly change？
-        todo.status.completed = res.data!.status.completed;
+        todo.status.completed = todo.status.completed === 'completed' ? 'not-started' : 'completed';
+      }
+      else {
+        toast.error(res.message || '切换失败，未知错误');
       }
     })
 }
@@ -193,8 +204,8 @@ function handleDeleteTodo(id: TodoId) {
   // return
   todoOps.deleteTodo(id).then(res => {
     if (res.success) {
-      // @todo to implement
-      todos = todos.filter(todo => todo.info.id !== id);
+      todos.value = todos.value.filter(todo => todo.info.id !== id);
+      toast.success('Todo 已删除');
     }
   })
 }
