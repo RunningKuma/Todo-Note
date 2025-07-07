@@ -46,7 +46,8 @@ function handleDelete() {
       <span class="ml-0.5">{{ todo.info.tags?.join(', ') }}</span>
     </div>
     <div class="ml-auto">
-      <Button class="" size="small" icon="pi pi-pencil" variant="text" severity="secondary" />
+      <Button class="" size="small" icon="pi pi-pencil" variant="text" severity="secondary"
+        @click="emit('edit', todo)" />
       <Button class="" size="small" :variant="deleteConfirm ? '' : 'text'"
         :severity="deleteConfirm ? 'danger' : 'secondary'" @click="handleDelete">
         <i class="pi pi-trash"></i>

@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { testTodo } from '@/api/constants/test';
-import { DataView, FloatLabel, IconField, InputIcon, InputText, Select } from 'primevue';
-import { Todo, TodoStatus } from '@/api/types/todo';
+import { DataView, Dialog, FloatLabel, IconField, InputIcon, InputText, Select } from 'primevue';
+import { Todo, TodoCreateData, TodoStatus } from '@/api/types/todo';
 import { computed, ref } from 'vue';
 import TodoItem from './components/TodoItem.vue';
+// import EditTodoForm from './components/EditTodoForm.vue';
+import TodoDialog from './components/TodoDialog.vue';
+import { createEmptyTodo } from '@/api/utils/todo';
+import { todoOps } from '@/api/todo/todo';
+import { TodoId } from '@/api/types/gerneral';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -23,6 +28,7 @@ const actions: PageHeaderAction[] = [
     icon: 'pi pi-plus',
     onClick: () => {
       // @todo to implement
+      handleTodoDialogToggle(true);
     }
   }
 ]
@@ -114,6 +120,69 @@ let fliterTodos = computed(() => todos.filter(todo => todo.info.title.includes(s
     }
     return false;
   }));
+
+
+let dialogAction: 'create' | 'update' | undefined;
+const dialogTodo = ref<Todo | null>(null);
+const showDialog = ref(false);
+// 处理对话框的显示和隐藏
+function handleTodoDialogToggle(visible: boolean, todo?: Todo) {
+  showDialog.value = visible;
+  // 关闭时清空对话框内容
+  if (!visible) {
+    dialogAction = undefined;
+    dialogTodo.value = null;
+  }
+  // 传入则为编辑，设置为当前编辑的 todo
+  else if (todo) {
+    dialogAction = 'update';
+    dialogTodo.value = todo;
+  }
+  // 不传入则为新建，创建一个新的 Todo
+  else {
+    dialogAction = 'create';
+    dialogTodo.value = createEmptyTodo();
+  }
+}
+function handleCreateTodo(todo: Todo) {
+  // @todo to implement
+  return
+  todoOps.createTodo(todo).then(res => {
+    if (res.success) {
+      console.log('Todo created successfully:', res.data);
+    }
+  })
+}
+function handleUpdateTodo(todo: Todo) {
+  // @todo to implement
+  return
+  todoOps.updateTodo(todo).then(res => {
+    if (res.success) {
+      console.log('Todo updated successfully:', res.data);
+    }
+  })
+}
+function handleToggleTodo(todo: Todo) {
+  // @todo to implement
+  return
+  todoOps.toggleTodo(todo.info.id, todo.status.completed === 'completed' ? 'not-started' : 'completed')
+    .then(res => {
+      if (res.success) {
+        // @todo to implement use ref or directly change？
+        todo.status.completed = res.data!.status.completed;
+      }
+    })
+}
+function handleDeleteTodo(id: TodoId) {
+  // @todo to implement
+  // return
+  todoOps.deleteTodo(id).then(res => {
+    if (res.success) {
+      // @todo to implement
+      todos = todos.filter(todo => todo.info.id !== id);
+    }
+  })
+}
 </script>
 <template>
   <div class="h-full flex flex-col">
@@ -144,9 +213,18 @@ let fliterTodos = computed(() => todos.filter(todo => todo.info.title.includes(s
       </template>
       <template #list="{ items }">
         <div class="flex flex-col">
-          <TodoItem :todo="todo" v-for="todo in (items as Todo[])" :key="todo.info.id" />
+          <TodoItem :todo="todo" v-for="todo in (items as Todo[])" :key="todo.info.id"
+            @edit="handleTodoDialogToggle(true, todo)" @toggle="handleToggleTodo(todo)"
+            @delete="handleDeleteTodo(todo.info.id)" />
         </div>
       </template>
     </DataView>
+    <TodoDialog v-model:visible="showDialog" v-if="dialogTodo" :todo="dialogTodo" header="Todo" @submit="(todo) => {
+      if (dialogAction === 'create') {
+        handleCreateTodo(todo);
+      } else if (dialogAction === 'update') {
+        handleUpdateTodo(todo);
+      }
+    }" @cancel="handleTodoDialogToggle(false)" />
   </div>
 </template>
