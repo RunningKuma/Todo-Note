@@ -180,7 +180,7 @@ function handleUpdateTodo(todo: Todo) {
 function handleToggleTodo(todo: Todo) {
   // @todo to implement
   return
-  todoOps.toggleTodo(todo.info.id, todo.status.completed === 'completed' ? 'not-started' : 'completed')
+  todoOps.toggleTodo(todo.info.id, todo.status.completed === 'completed' ? false : true)
     .then(res => {
       if (res.success) {
         // @todo to implement use ref or directly change？
