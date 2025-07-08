@@ -5,9 +5,10 @@ import NoteTree from './components/NoteTree.vue';
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { noteDiffEngine } from '@/api/note/note';
 import 'vditor/dist/index.css';
-import { Note } from '@/api/types/note';
-import { testNote } from '@/api/constants/test';
+import { Note, NoteTreeNode } from '@/api/types/note';
+import { testNote, testTreeData } from '@/api/constants/test';
 import NoteMeta from './components/NoteMeta.vue';
+import { TreeNode } from 'primevue/treenode';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -46,6 +47,7 @@ const actions: PageHeaderAction[] = [
 const vditorElement = ref<HTMLDivElement | undefined>();
 const noteId = ref('demo-note-001');
 const note = ref<Note>(testNote);
+const noteTreeNodes = ref<NoteTreeNode[]>(testTreeData)
 watch(
   () => noteId.value,
   async (newId) => {
@@ -77,10 +79,10 @@ onUnmounted(() => {
 </script>
 <template>
   <div class="h-full flex overflow-hidden">
-    <NoteTree />
+    <NoteTree :note-tree-nodes="noteTreeNodes" />
     <div class="h- flex-1">
       <PageHeader v-model:visible="visible" v-model:note_title="note.meta.title" title="Note" :actions="actions" />
-      <NoteMeta v-model="note.meta" class="px-6" />
+      <NoteMeta v-model="note.meta" class="px-6 pb-1" />
       <div ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>
 
     </div>

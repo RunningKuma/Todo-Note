@@ -1,15 +1,21 @@
 <script setup lang="ts">
 import { testTreeData } from '@/api/constants/test';
+import { NoteTreeNode } from '@/api/types/note';
 import { Button, ButtonGroup, Tree, TreeExpandedKeys, TreeSelectionKeys } from 'primevue';
 import { TreeNode } from 'primevue/treenode';
 import { computed, ref } from 'vue';
 
-const noteTreeNodes = ref<TreeNode[]>(testTreeData)
+// const { noteTreeNodes } = defineProps<{ noteTreeNodes: NoteTreeNode[] }>({ noteTreeNodes: () => [] });
+const { noteTreeNodes } = withDefaults(defineProps<{
+  noteTreeNodes: NoteTreeNode[];
+}>(), {
+  noteTreeNodes: () => []
+});
 const selectedNode = ref<TreeSelectionKeys>({});
 const expandedKeys = ref<TreeExpandedKeys>({});
 
 const expandAll = () => {
-  for (let node of noteTreeNodes.value) {
+  for (let node of noteTreeNodes) {
     expandNode(node);
   }
 
@@ -49,7 +55,7 @@ const folderNum = computed(() => {
     return count;
   };
 
-  return countFolders(noteTreeNodes.value);
+  return countFolders(noteTreeNodes);
 });
 console.log(expendedNum)
 </script>
