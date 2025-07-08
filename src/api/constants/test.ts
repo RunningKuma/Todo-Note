@@ -296,8 +296,8 @@ export const testTreeData: NoteTreeNode[] = [
           { key: "0-0-1", label: "Note 1-1-2", type: 'note' }
         ]
       },
-      { key: "0-0", label: "Note 1", type: 'note' },
-      { key: "0-1", label: "Note 2", type: 'note' }
+      { key: "0-1", label: "Note 1", type: 'note' },
+      { key: "0-2", label: "Note 2", type: 'note' }
     ]
   },
   {
