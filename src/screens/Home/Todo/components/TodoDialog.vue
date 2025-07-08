@@ -119,13 +119,6 @@ const errors = reactive({
 
 const loading = ref(false);
 
-// 优先级选项
-const priorityOptions = [
-  { label: '低优先级', value: 1 },
-  { label: '中优先级', value: 2 },
-  { label: '高优先级', value: 3 }
-];
-
 // 初始化表单数据
 // const initializeForm = () => {
 //   formData.title = todo.info.title;

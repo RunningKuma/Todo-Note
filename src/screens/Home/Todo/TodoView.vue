@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { testTodo } from '@/api/constants/test';
-import { DataView, Dialog, FloatLabel, IconField, InputIcon, InputText, Select, Toast } from 'primevue';
+import { Button, DataView, Dialog, FloatLabel, IconField, InputIcon, InputText, Select, Toast } from 'primevue';
 import { Todo, TodoCreateData, TodoStatus } from '@/api/types/todo';
 import { computed, ref } from 'vue';
 import TodoItem from './components/TodoItem.vue';
@@ -24,14 +24,14 @@ const actions: PageHeaderAction[] = [
       // @todo to implement
     }
   },
-  {
-    label: '创建',
-    icon: 'pi pi-plus',
-    onClick: () => {
-      // @todo to implement
-      handleTodoDialogToggle(true);
-    }
-  }
+  // {
+  //   label: '创建',
+  //   icon: 'pi pi-plus',
+  //   onClick: () => {
+  //     // @todo to implement
+  //     handleTodoDialogToggle(true);
+  //   }
+  // }
 ]
 
 // filter options
@@ -216,6 +216,8 @@ function handleDeleteTodo(id: TodoId) {
 <template>
   <div class="h-full flex flex-col">
     <PageHeader v-model="visible" title="Todo" :actions="actions" />
+    <Button class="fixed! right-8 bottom-8 z-50" size="large" icon="pi pi-plus" severity="primary" rounded
+      @click="handleTodoDialogToggle(true)" />
     <DataView :value="fliterTodos" class="h-full relative overflow-y-auto flex flex-col" lazy>
       <template #header>
         <!-- @todo sticky header -->
