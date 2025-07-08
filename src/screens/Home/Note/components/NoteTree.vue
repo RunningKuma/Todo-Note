@@ -35,6 +35,22 @@ function handleNoteSelect(e: TreeNode) {
   console.log(selectedNode.value);
 }
 const expendedNum = computed(() => Object.keys(expandedKeys.value).length)
+const folderNum = computed(() => {
+  const countFolders = (nodes: TreeNode[]): number => {
+    let count = 0;
+    for (const node of nodes) {
+      if (node.type === 'folder') {
+        count++;
+      }
+      if (node.children && node.children.length > 0) {
+        count += countFolders(node.children);
+      }
+    }
+    return count;
+  };
+
+  return countFolders(noteTreeNodes.value);
+});
 console.log(expendedNum)
 </script>
 <template>
@@ -43,16 +59,19 @@ console.log(expendedNum)
     filterPlaceholder="搜索笔记..." @node-select="handleNoteSelect">
     <template #header>
       <div class="flex">
-        <span class="text-lg font-semibold">笔记树</span>
+        <span class="text-lg font-semibold">我的笔记</span>
         <ButtonGroup class="ml-auto">
           <Button
-            :class="(expendedNum < noteTreeNodes.length ? 'w-8!' : 'w-0! p-0!') + ' h-8! transition-all! duration-300! overflow-hidden'"
+            :class="(expendedNum < folderNum ? 'w-8!' : 'w-0! p-0!') + ' h-8! transition-all! duration-300! overflow-hidden'"
             icon="pi pi-angle-down" size="small" severity="secondary" outlined @click="expandAll" />
           <Button
-            :class="(expendedNum !== noteTreeNodes.values.length ? 'w-8!' : 'w-0! p-0!') + ' h-8! transition-all! duration-300! overflow-hidden'"
+            :class="(expendedNum !== 0 ? 'w-8!' : 'w-0! p-0!') + ' h-8! transition-all! duration-300! overflow-hidden'"
             icon="pi pi-angle-up" size="small" severity="secondary" outlined @click="collapseAll" />
         </ButtonGroup>
       </div>
+    </template>
+    <template #nodeicon="{ node }">
+      <i :class="node.type === 'folder' ? 'pi pi-folder' : 'pi pi-file'" class="text-secondary"></i>
     </template>
   </Tree>
 </template>

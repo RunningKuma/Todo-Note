@@ -17,5 +17,6 @@ export type Note = {
 
 export type NoteTreeNode = Pick<TreeNode, 'label'> & {
   key: NoteFolderId | NoteId,
+  type: 'folder' | 'note',
   children?: NoteTreeNode[],
 }

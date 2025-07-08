@@ -289,15 +289,21 @@ export const testUserData: UserData = {
 
 export const testTreeData: NoteTreeNode[] = [
   {
-    key: "0", label: "Root", children: [
-      { key: "0-0", label: "Child 1" },
-      { key: "0-1", label: "Child 2" }
+    key: "0", label: "Folder 1", type: 'folder', children: [
+      {
+        key: "0-0", label: "Folder 1-1", type: 'folder', children: [
+          { key: "0-0-0", label: "Note 1-1-1", type: 'note' },
+          { key: "0-0-1", label: "Note 1-1-2", type: 'note' }
+        ]
+      },
+      { key: "0-0", label: "Note 1", type: 'note' },
+      { key: "0-1", label: "Note 2", type: 'note' }
     ]
   },
   {
-    key: "1", label: "Root 2", children: [
-      { key: "1-0", label: "Child 3" },
-      { key: "1-1", label: "Child 4" }
+    key: "1", label: "Folder 2", type: 'folder', children: [
+      { key: "1-0", label: "Note 3", type: 'note' },
+      { key: "1-1", label: "Note 4", type: 'note' }
     ]
   }
 ]
