@@ -7,9 +7,14 @@ import DrawerTrigger from "./SideBar/DrawerTrigger.vue";
 import SideBar from "./SideBar/SideBar.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import { Toast } from "primevue";
+import { UserData } from "@/api/types/user";
 
-const displayMessage = ref("");
-const userData = await userOps.getUserData();
+const userData = ref<UserData>();
+userOps.getUserData().then((data) => {
+  userData.value = data;
+}).catch((error) => {
+  console.error("Failed to fetch user data:", error);
+});
 
 const visible = ref(true);
 

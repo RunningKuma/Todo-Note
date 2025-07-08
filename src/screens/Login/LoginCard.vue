@@ -26,7 +26,7 @@ const handleForm = async () => {
   errorMessage.value = { email: "", password: "" };
 
   //@todo fix type
-  const result = await userOps.login(email.value as string, password.value);
+  const result = await userOps.login(email.value!, password.value);
   // console.log(result);
 
   if (result.success) {

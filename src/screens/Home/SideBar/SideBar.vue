@@ -7,7 +7,7 @@ import router from '@/router';
 import { RouteLocationAsRelativeGeneric, useRoute } from 'vue-router';
 const visible = defineModel<boolean>();
 
-const { username } = defineProps<{ username: string | undefined }>();
+const { username } = defineProps<{ username?: string }>();
 
 const avatarPopup = ref();
 const handleLogout = () => {

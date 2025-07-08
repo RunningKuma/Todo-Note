@@ -8,8 +8,10 @@
   font-feature-settings: 'liga' 1, 'calt' 1;
 }
 @theme {
+  --color-primary: var(--color-orange-500);
   --spacing-sidebar: 120px;
-  --spacing-sidebar-tabh: 35px
+  --spacing-sidebar-tabh: 35px;
+    --spacing-note-sidebar: 256px;
 }
 
 @supports (font-variation-settings: normal) {

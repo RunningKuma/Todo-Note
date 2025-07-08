@@ -1,67 +1,56 @@
 import { db } from '@server/config/database';
+import type { AffectNumber, TodoRawData } from '@server/types/db.d';
+import type { TodoInfo, TodoStatus, TodoCreateData, Todo } from '@server/types/todo.d';
+import type { TodoId, UserId } from '@server/types/gerneral.d';
+import { dbToTodo, todoToDb, batchDbToTodo } from '@server/utils/db';
 
-export interface TodoData {
-  id?: number;
-  user_id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  priority: 'low' | 'medium' | 'high';
-  due_date?: string;
-  category?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export const Todo = {
+export const TodoModel = {
   /**
    * 创建TODO表
    */
   createTable: (): void => {
     db.run(`CREATE TABLE IF NOT EXISTS todos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
       title TEXT NOT NULL,
       description TEXT,
-      completed INTEGER DEFAULT 0,
-      priority TEXT CHECK(priority IN ('low', 'medium', 'high')) DEFAULT 'medium',
-      due_date TEXT,
-      category TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at DATETIME NOT NULL,
+      ddl DATETIME,
+      priority INTEGER NOT NULL,
+      tags TEXT, -- JSON string of tags array
+      note_link TEXT,
+      completed TEXT CHECK(completed IN ('completed', 'in-progress', 'not-started', 'pending')) DEFAULT 'not-started',
       FOREIGN KEY (user_id) REFERENCES users (id)
     )`);
   },
   /**
    * 创建新的TODO
    */
-  async create(todoData: Omit<TodoData, 'id' | 'created_at' | 'updated_at'>): Promise<TodoData> {
+  async create(todo: TodoCreateData): Promise<AffectNumber> {
     try {
-      const result = await db.execute(
-        `INSERT INTO todos (user_id, title, description, completed, priority, due_date, category, updated_at) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+      const dbData = todoToDb(todo);
+      const res = await db.execute(
+        `INSERT INTO todos (id, user_id, title, description, created_at, ddl, priority, tags, note_link, completed)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          todoData.user_id,
-          todoData.title,
-          todoData.description || null,
-          todoData.completed ? 1 : 0,
-          todoData.priority,
-          todoData.due_date || null,
-          todoData.category || null
+          dbData.id,
+          dbData.user_id,
+          dbData.title,
+          dbData.description || null,
+          dbData.created_at,
+          dbData.ddl || null,
+          dbData.priority,
+          dbData.tags || null,
+          dbData.note_link || null,
+          dbData.completed
         ]
       );
 
-      // 返回创建的TODO
-      const created = await db.queryOne<TodoData>(
-        'SELECT * FROM todos WHERE id = ?',
-        [result]
-      );
-
-      if (!created) {
+      if (!res) {
         throw new Error('Failed to retrieve created todo');
       }
 
-      return created;
+      return res;
     } catch (error) {
       console.error('Error creating todo:', error);
       throw error;
@@ -71,13 +60,13 @@ export const Todo = {
   /**
    * 获取用户的所有TODO
    */
-  async findByUserId(userId: string): Promise<TodoData[]> {
+  async findByUserId(userId: UserId): Promise<TodoCreateData[]> {
     try {
-      const todos = await db.query<TodoData>(
+      const todos = await db.query<TodoRawData>(
         'SELECT * FROM todos WHERE user_id = ? ORDER BY created_at DESC',
         [userId]
       );
-      return todos;
+      return batchDbToTodo(todos);
     } catch (error) {
       console.error('Error finding todos by user ID:', error);
       throw error;
@@ -87,13 +76,13 @@ export const Todo = {
   /**
    * 根据ID获取TODO
    */
-  async findById(id: number): Promise<TodoData | null> {
+  async findById(id: TodoId): Promise<TodoCreateData | null> {
     try {
-      const todo = await db.queryOne<TodoData>(
+      const todo = await db.queryOne<TodoRawData>(
         'SELECT * FROM todos WHERE id = ?',
         [id]
       );
-      return todo || null;
+      return todo ? dbToTodo(todo) : null;
     } catch (error) {
       console.error('Error finding todo by ID:', error);
       throw error;
@@ -103,58 +92,57 @@ export const Todo = {
   /**
    * 更新TODO
    */
-  async update(id: number, todoData: Partial<TodoData>): Promise<TodoData> {
+  async update(todo: Partial<TodoCreateData>): Promise<AffectNumber> {
     try {
       const updateFields: string[] = [];
       const updateValues: any[] = [];
+      if (!todo.info) return 0;
 
-      if (todoData.title !== undefined) {
+      if (todo.info.title) {
         updateFields.push('title = ?');
-        updateValues.push(todoData.title);
+        updateValues.push(todo.info.title);
       }
-      if (todoData.description !== undefined) {
+      if (todo.info.description) {
         updateFields.push('description = ?');
-        updateValues.push(todoData.description);
+        updateValues.push(todo.info.description);
       }
-      if (todoData.completed !== undefined) {
+      if (todo.status?.completed) {
         updateFields.push('completed = ?');
-        updateValues.push(todoData.completed ? 1 : 0);
+        updateValues.push(todo.status.completed);
       }
-      if (todoData.priority !== undefined) {
+      if (todo.info.priority) {
         updateFields.push('priority = ?');
-        updateValues.push(todoData.priority);
+        updateValues.push(todo.info.priority);
       }
-      if (todoData.due_date !== undefined) {
-        updateFields.push('due_date = ?');
-        updateValues.push(todoData.due_date);
+      if (todo.info.ddl) {
+        updateFields.push('ddl = ?');
+        updateValues.push(todo.info.ddl || null);
       }
-      if (todoData.category !== undefined) {
-        updateFields.push('category = ?');
-        updateValues.push(todoData.category);
+      if (todo.info.tags) {
+        updateFields.push('tags = ?');
+        updateValues.push(todo.info.tags ? JSON.stringify(todo.info.tags) : null);
+      }
+      if (todo.info.note_link) {
+        updateFields.push('note_link = ?');
+        updateValues.push(todo.info.note_link);
       }
 
       if (updateFields.length === 0) {
         throw new Error('No fields to update');
       }
 
-      updateFields.push('updated_at = CURRENT_TIMESTAMP');
-      updateValues.push(id);
-
-      await db.run(
+      const res = await db.execute(
         `UPDATE todos SET ${updateFields.join(', ')} WHERE id = ?`,
-        updateValues
+        [...updateValues, todo.info.id]
       );
 
-      const updated = await db.queryOne<TodoData>(
-        'SELECT * FROM todos WHERE id = ?',
-        [id]
-      );
 
-      if (!updated) {
+
+      if (!res) {
         throw new Error('Todo not found after update');
       }
 
-      return updated;
+      return res;
     } catch (error) {
       console.error('Error updating todo:', error);
       throw error;
@@ -164,7 +152,7 @@ export const Todo = {
   /**
    * 删除TODO
    */
-  async delete(id: number): Promise<boolean> {
+  async delete(id: TodoId): Promise<boolean> {
     try {
       await db.run('DELETE FROM todos WHERE id = ?', [id]);
       return true;
@@ -177,65 +165,78 @@ export const Todo = {
   /**
    * 切换TODO完成状态
    */
-  async toggleCompleted(id: number): Promise<TodoData> {
+  async toggleCompleted(id: TodoId, complete: boolean): Promise<boolean> {
     try {
       const todo = await this.findById(id);
       if (!todo) {
         throw new Error('Todo not found');
       }
 
-      return await this.update(id, { completed: !todo.completed });
+      const newStatus: TodoStatus['completed'] = complete ? 'completed' : 'not-started';
+      // @ts-expect-error part of TodoInfo
+      const response = await this.update({ info: { id }, status: { completed: newStatus } });
+      return response > 0 ? true : false
     } catch (error) {
       console.error('Error toggling todo completion:', error);
       throw error;
     }
   },
 
-  /**
-   * 按分类获取TODO
-   */
-  async findByCategory(userId: string, category: string): Promise<TodoData[]> {
-    try {
-      const todos = await db.query<TodoData>(
-        'SELECT * FROM todos WHERE user_id = ? AND category = ? ORDER BY created_at DESC',
-        [userId, category]
-      );
-      return todos;
-    } catch (error) {
-      console.error('Error finding todos by category:', error);
-      throw error;
-    }
-  },
+  // /**
+  //  * 按标签获取TODO
+  //  */
+  // async findByTags(userId: UserId, tags: string[]): Promise<TodoRawData[]> {
+  //   try {
+  //     const todos = await db.query<TodoRawData>(
+  //       'SELECT * FROM todos WHERE user_id = ? AND tags IS NOT NULL ORDER BY create DESC',
+  //       [userId]
+  //     );
 
-  /**
-   * 获取已完成的TODO
-   */
-  async findCompleted(userId: string): Promise<TodoData[]> {
-    try {
-      const todos = await db.query<TodoData>(
-        'SELECT * FROM todos WHERE user_id = ? AND completed = 1 ORDER BY updated_at DESC',
-        [userId]
-      );
-      return todos;
-    } catch (error) {
-      console.error('Error finding completed todos:', error);
-      throw error;
-    }
-  },
+  //     // 在应用层过滤标签，因为 SQLite 的 JSON 处理有限
+  //     return todos.filter(todo => {
+  //       if (!todo.tags) return false;
+  //       try {
+  //         const todoTags = JSON.parse(todo.tags);
+  //         return tags.some(tag => todoTags.includes(tag));
+  //       } catch {
+  //         return false;
+  //       }
+  //     });
+  //   } catch (error) {
+  //     console.error('Error finding todos by tags:', error);
+  //     throw error;
+  //   }
+  // },
 
-  /**
-   * 获取未完成的TODO
-   */
-  async findPending(userId: string): Promise<TodoData[]> {
-    try {
-      const todos = await db.query<TodoData>(
-        'SELECT * FROM todos WHERE user_id = ? AND completed = 0 ORDER BY priority DESC, due_date ASC',
-        [userId]
-      );
-      return todos;
-    } catch (error) {
-      console.error('Error finding pending todos:', error);
-      throw error;
-    }
-  }
+  // /**
+  //  * 获取已完成的TODO
+  //  */
+  // async findCompleted(userId: UserId): Promise<TodoRawData[]> {
+  //   try {
+  //     const todos = await db.query<TodoRawData>(
+  //       'SELECT * FROM todos WHERE user_id = ? AND completed = "completed" ORDER BY create DESC',
+  //       [userId]
+  //     );
+  //     return todos;
+  //   } catch (error) {
+  //     console.error('Error finding completed todos:', error);
+  //     throw error;
+  //   }
+  // },
+
+  // /**
+  //  * 获取未完成的TODO
+  //  */
+  // async findPending(userId: UserId): Promise<TodoRawData[]> {
+  //   try {
+  //     const todos = await db.query<TodoRawData>(
+  //       'SELECT * FROM todos WHERE user_id = ? AND completed != "completed" ORDER BY priority DESC, ddl ASC',
+  //       [userId]
+  //     );
+  //     return todos;
+  //   } catch (error) {
+  //     console.error('Error finding pending todos:', error);
+  //     throw error;
+  //   }
+  // }
 };

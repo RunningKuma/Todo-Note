@@ -3,6 +3,8 @@ import type { Todo } from '../types/todo';
 import { request } from '../utils/request';
 import { ApiResponse } from '../types/request';
 import { TodoId } from '../types/gerneral';
+import { AffectNumber } from '../types/db';
+import { testTodo } from '../constants/test';
 
 // TODO操作API
 export const todoOps = {
@@ -10,6 +12,7 @@ export const todoOps = {
    * 获取用户的所有TODO
    */
   getTodos: async (): Promise<ApiResponse<Todo[]>> => {
+    // return { success: true, data: testTodo }
     const response = await request.get('/todos')
       .catch(res => {
         return { success: false, ...res.response } as AxiosResponse;
@@ -28,7 +31,7 @@ export const todoOps = {
   /**
    * 创建新的TODO
    */
-  createTodo: async (todoData: Todo): Promise<ApiResponse<Todo>> => {
+  createTodo: async (todoData: Todo): Promise<ApiResponse<AffectNumber>> => {
     const response = await request.post('/todos', todoData)
       .catch(res => {
         console.error('创建TODO失败:', res);
@@ -37,7 +40,7 @@ export const todoOps = {
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 201) {
-      return response.data as ApiResponse<Todo>;
+      return response.data as ApiResponse<AffectNumber>;
     // return { success: true, data: response.data as Todo, message: '' };
     }
 
@@ -46,7 +49,7 @@ export const todoOps = {
   /**
    * 更新TODO
    */
-  updateTodo: async (todo: Todo): Promise<ApiResponse<Todo>> => {
+  updateTodo: async (todo: Todo): Promise<ApiResponse<AffectNumber>> => {
     const response = await request.put(`/todos`, todo)
       .catch(res => {
         console.error('更新TODO失败:', res);
@@ -55,7 +58,7 @@ export const todoOps = {
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 200) {
-      return response.data as ApiResponse<Todo>;
+      return response.data as ApiResponse<AffectNumber>;
     // return { success: true, data: response.data as Todo, message: '' };
     }
 
@@ -84,9 +87,9 @@ export const todoOps = {
   /**
    * 切换TODO完成状态
    */
-  toggleTodo: async (id: TodoId, complete: boolean): Promise<ApiResponse<Todo>> => {
+  toggleTodo: async (id: TodoId, complete: boolean): Promise<ApiResponse<boolean>> => {
     //! 不能直接传输 false/true，必须传递标准 JSON
-    const response = await request.patch(`/todos/${id}/toggle`, { complete })
+    const response = await request.patch(`/todos/toggle`, { id, complete })
       .catch(res => {
         console.error('切换TODO状态失败:', res);
         return { success: false, ...res.response } as AxiosResponse;
@@ -94,7 +97,7 @@ export const todoOps = {
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 200) {
-      return response.data as ApiResponse<Todo>;
+      return response.data as ApiResponse<boolean>;
     // return { success: true, data: response.data as Todo, message: '' };
     }
 

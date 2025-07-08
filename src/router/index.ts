@@ -6,7 +6,7 @@ import { userOps } from "@/api/auth/auth";
 import Overview from "@/screens/Home/Overview/Overview.vue";
 import Search from "@/screens/Home/Search/Search.vue";
 import TodoView from "@/screens/Home/Todo/TodoView.vue";
-import Note from "@/screens/Home/Note/Note.vue";
+import Note from "@/screens/Home/Note/NoteView.vue";
 
 const routes: readonly RouteRecordRaw[] = [
   {

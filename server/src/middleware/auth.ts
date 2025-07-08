@@ -7,7 +7,7 @@ export interface AuthenticatedRequest extends Request {
 
 export const authenticateToken = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   const token = req.headers['authorization']?.split(' ')[1];
-  
+
   if (!token) {
     res.status(401).json({ success: false, message: 'No token provided' });
     return;
@@ -19,7 +19,8 @@ export const authenticateToken = (req: AuthenticatedRequest, res: Response, next
       res.status(401).json({ success: false, message: 'Invalid token' });
       return;
     }
-    
+
+    //! 请求并没有传输 user，是通过这里加进去的()
     req.user = { id: decoded.id };
     next();
   } catch (error) {

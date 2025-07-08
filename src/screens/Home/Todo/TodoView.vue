@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { testTodo } from '@/api/constants/test';
-import { DataView, Dialog, FloatLabel, IconField, InputIcon, InputText, Select, Toast } from 'primevue';
+import { Button, DataView, Dialog, FloatLabel, IconField, InputIcon, InputText, Select, Toast } from 'primevue';
 import { Todo, TodoCreateData, TodoStatus } from '@/api/types/todo';
 import { computed, ref } from 'vue';
 import TodoItem from './components/TodoItem.vue';
@@ -11,6 +11,8 @@ import { createEmptyTodo } from '@/api/utils/todo';
 import { todoOps } from '@/api/todo/todo';
 import { TodoId } from '@/api/types/gerneral';
 import { useToastHelper } from '@/api/utils/toast';
+//! ref: https://www.cssscript.com/liquid-glass-web/
+import { LiquidWeb } from 'liquid-web/vue';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -24,14 +26,14 @@ const actions: PageHeaderAction[] = [
       // @todo to implement
     }
   },
-  {
-    label: '创建',
-    icon: 'pi pi-plus',
-    onClick: () => {
-      // @todo to implement
-      handleTodoDialogToggle(true);
-    }
-  }
+  // {
+  //   label: '创建',
+  //   icon: 'pi pi-plus',
+  //   onClick: () => {
+  //     // @todo to implement
+  //     handleTodoDialogToggle(true);
+  //   }
+  // }
 ]
 
 // filter options
@@ -75,11 +77,11 @@ const searchKey = ref<string>('');
 // logic
 
 const toast = useToastHelper()
-let todos: Todo[] = [];
+const todos = ref<Todo[]>([]);
 todoOps.getTodos().then(res => {
+  // @todo 确实存在较短时间登录仍然 invalid token 的情况
   if (res.success) {
-    // @todo to implement use ref or directly change？
-    todos = res.data!;
+    todos.value = res.data!;
   }
   else {
     throw new Error(res.message || '获取待办列表失败');
@@ -89,7 +91,7 @@ todoOps.getTodos().then(res => {
 });
 // 筛选功能
 // @todo 下方筛选无效暂时屏蔽 to implement
-let fliterTodos = computed(() => todos.filter(todo => todo.info.title.includes(searchKey.value))
+let fliterTodos = computed(() => todos.value.filter(todo => todo.info.title.includes(searchKey.value))
   .filter(todo => {
     if (statusFliter.value.value === 'all') return true;
     if (todo.status.completed === undefined) return false; // 如果没有设置状态，则不显示
@@ -151,7 +153,8 @@ function handleTodoDialogToggle(visible: boolean, todo?: Todo) {
   // 传入则为编辑，设置为当前编辑的 todo
   else if (todo) {
     dialogAction = 'update';
-    dialogTodo.value = todo;
+    // 深拷贝 todo
+    dialogTodo.value = JSON.parse(JSON.stringify(todo));
   }
   // 不传入则为新建，创建一个新的 Todo
   else {
@@ -161,30 +164,44 @@ function handleTodoDialogToggle(visible: boolean, todo?: Todo) {
 }
 function handleCreateTodo(todo: Todo) {
   // @todo to implement
-  return
+  // return
   todoOps.createTodo(todo).then(res => {
     if (res.success) {
+      todos.value.push(todo);
+      handleTodoDialogToggle(false);
+      toast.success('创建成功');
       console.log('Todo created successfully:', res.data);
+    }
+    else {
+      toast.error(res.message || '创建失败，未知错误');
     }
   })
 }
 function handleUpdateTodo(todo: Todo) {
   // @todo to implement
-  return
+  // return
   todoOps.updateTodo(todo).then(res => {
     if (res.success) {
+      todos.value = todos.value.map(t => t.info.id === todo.info.id ? todo : t);
+      handleTodoDialogToggle(false);
+      toast.success('更新成功');
       console.log('Todo updated successfully:', res.data);
+    }
+    else {
+      toast.error(res.message || '更新失败，未知错误');
     }
   })
 }
 function handleToggleTodo(todo: Todo) {
   // @todo to implement
-  return
+  // return
   todoOps.toggleTodo(todo.info.id, todo.status.completed === 'completed' ? false : true)
     .then(res => {
       if (res.success) {
-        // @todo to implement use ref or directly change？
-        todo.status.completed = res.data!.status.completed;
+        todo.status.completed = todo.status.completed === 'completed' ? 'not-started' : 'completed';
+      }
+      else {
+        toast.error(res.message || '切换失败，未知错误');
       }
     })
 }
@@ -193,8 +210,8 @@ function handleDeleteTodo(id: TodoId) {
   // return
   todoOps.deleteTodo(id).then(res => {
     if (res.success) {
-      // @todo to implement
-      todos = todos.filter(todo => todo.info.id !== id);
+      todos.value = todos.value.filter(todo => todo.info.id !== id);
+      toast.success('Todo 已删除');
     }
   })
 }
@@ -202,6 +219,11 @@ function handleDeleteTodo(id: TodoId) {
 <template>
   <div class="h-full flex flex-col">
     <PageHeader v-model="visible" title="Todo" :actions="actions" />
+    <LiquidWeb class="fixed! right-12 bottom-12 z-50" :options="{ scale: 30, blur: 1, aberration: 100 }" selector="div">
+      <Button id="addBtn"
+        :class="showDialog ? 'opacity-0 pointer-events-none' : 'bg-primary/50! opacity-100' + ' btn-scale transition-all! duration-300!'"
+        size="large" icon="pi pi-plus" rounded @click="handleTodoDialogToggle(true)" />
+    </LiquidWeb>
     <DataView :value="fliterTodos" class="h-full relative overflow-y-auto flex flex-col" lazy>
       <template #header>
         <!-- @todo sticky header -->
