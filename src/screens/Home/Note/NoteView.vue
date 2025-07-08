@@ -15,20 +15,33 @@ const visible = defineModel<boolean>({
 });
 const actions: PageHeaderAction[] = [
   {
+    label: '刷新',
+    icon: 'pi pi-refresh',
+    onClick: () => {
+      // @todo to implement
+    }
+  },
+  {
+    label: '历史记录',
+    icon: 'pi pi-history',
+    onClick: () => {
+      // @todo to implement
+    }
+  },
+  {
     label: '导出',
     icon: 'pi pi-upload',
     onClick: () => {
       // @todo to implement
     }
   },
-  // {
-  //   label: '创建',
-  //   icon: 'pi pi-plus',
-  //   onClick: () => {
-  //     // @todo to implement
-  //     handleTodoDialogToggle(true);
-  //   }
-  // }
+  {
+    label: '更多',
+    icon: 'pi pi-ellipsis-h',
+    onClick: () => {
+      // @todo to implement
+    }
+  }
 ]
 const vditorElement = ref<HTMLDivElement | undefined>();
 const noteId = ref('demo-note-001');
@@ -67,7 +80,7 @@ onUnmounted(() => {
     <NoteTree />
     <div class="h- flex-1">
       <PageHeader v-model:visible="visible" v-model:note_title="note.meta.title" title="Note" :actions="actions" />
-      <NoteMeta v-model="note.meta" class="p-4" />
+      <NoteMeta v-model="note.meta" class="px-6" />
       <div ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>
 
     </div>

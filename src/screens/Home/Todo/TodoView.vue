@@ -218,7 +218,7 @@ function handleDeleteTodo(id: TodoId) {
 </script>
 <template>
   <div class="h-full flex flex-col">
-    <PageHeader v-model="visible" title="Todo" :actions="actions" />
+    <PageHeader v-model:visible="visible" title="Todo" :actions="actions" />
     <LiquidWeb class="fixed! right-12 bottom-12 z-50" :options="{ scale: 30, blur: 1, aberration: 100 }" selector="div">
       <Button id="addBtn"
         :class="showDialog ? 'scale-0 pointer-events-none' : 'bg-primary/50! scale-100' + ' btn-scale transition-all! duration-300!'"

@@ -29,3 +29,4 @@ if (noteMeta.value.tags) {
     </div>
   </div>
 </template>
+<style scoped></style>

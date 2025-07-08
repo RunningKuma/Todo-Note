@@ -6,6 +6,7 @@
 :root {
   font-family: Inter, sans-serif;
   font-feature-settings: 'liga' 1, 'calt' 1;
+  --p-inplace-padding: 0.5rem 0 !important;
 }
 @theme {
   --color-primary: var(--color-orange-500);
