@@ -1,5 +1,7 @@
+import { TreeNode } from "primevue/treenode";
 import { Todo } from "../types/todo";
 import type { UserData } from "../types/user";
+import { NoteTreeNode } from "../types/note";
 
 export const testTodo: Todo[] = [
   {
@@ -284,3 +286,18 @@ export const testUserData: UserData = {
     todo: testTodo
   }
 };
+
+export const testTreeData: NoteTreeNode[] = [
+  {
+    key: "0", label: "Root", children: [
+      { key: "0-0", label: "Child 1" },
+      { key: "0-1", label: "Child 2" }
+    ]
+  },
+  {
+    key: "1", label: "Root 2", children: [
+      { key: "1-0", label: "Child 3" },
+      { key: "1-1", label: "Child 4" }
+    ]
+  }
+]
