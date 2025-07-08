@@ -84,10 +84,10 @@ todoOps.getTodos().then(res => {
     todos.value = res.data!;
   }
   else {
-    throw new Error(res.message || '获取待办列表失败');
+    toast.error(res.message || '未知错误', '获取待办列表失败');
+    // throw new Error(res.message || '获取待办列表失败');
   }
-}).catch(err => {
-  toast.error(err.message || '未知错误', '获取待办列表失败');
+  // }).catch(err => {
 });
 // 筛选功能
 // @todo 下方筛选无效暂时屏蔽 to implement
@@ -221,7 +221,7 @@ function handleDeleteTodo(id: TodoId) {
     <PageHeader v-model="visible" title="Todo" :actions="actions" />
     <LiquidWeb class="fixed! right-12 bottom-12 z-50" :options="{ scale: 30, blur: 1, aberration: 100 }" selector="div">
       <Button id="addBtn"
-        :class="showDialog ? 'opacity-0 pointer-events-none' : 'bg-primary/50! opacity-100' + ' btn-scale transition-all! duration-300!'"
+        :class="showDialog ? 'scale-0 pointer-events-none' : 'bg-primary/50! scale-100' + ' btn-scale transition-all! duration-300!'"
         size="large" icon="pi pi-plus" rounded @click="handleTodoDialogToggle(true)" />
     </LiquidWeb>
     <DataView :value="fliterTodos" class="h-full relative overflow-y-auto flex flex-col" lazy>

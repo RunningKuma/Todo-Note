@@ -5,8 +5,12 @@ import PrimeVue from 'primevue/config';
 import ToastService from 'primevue/toastservice';
 import Aura from '@primeuix/themes/aura';
 import { definePreset } from "@primeuix/themes";
+import { Tooltip } from "primevue";
 
 const app = createApp(App);
+
+// add tooltip support ref: https://primevue.org/tooltip/
+app.directive('tooltip', Tooltip)
 
 const AuraPreset = definePreset(Aura, {
   semantic: {

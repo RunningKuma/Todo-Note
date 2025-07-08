@@ -66,8 +66,8 @@ onUnmounted(() => {
   <div class="h-full flex overflow-hidden">
     <NoteTree />
     <div class="h- flex-1">
-      <PageHeader v-model="visible" title="Note" :note_title="note.meta.title" :actions="actions" />
-      <NoteMeta v-bind="note.meta" class="p-4" />
+      <PageHeader v-model:visible="visible" v-model:note_title="note.meta.title" title="Note" :actions="actions" />
+      <NoteMeta v-model="note.meta" class="p-4" />
       <div ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>
 
     </div>
