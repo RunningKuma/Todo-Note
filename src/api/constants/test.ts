@@ -1,7 +1,7 @@
 import { TreeNode } from "primevue/treenode";
 import { Todo } from "../types/todo";
 import type { UserData } from "../types/user";
-import { NoteTreeNode } from "../types/note";
+import { Note, NoteTreeNode } from "../types/note";
 
 export const testTodo: Todo[] = [
   {
@@ -301,3 +301,14 @@ export const testTreeData: NoteTreeNode[] = [
     ]
   }
 ]
+
+export const testNote: Note = {
+  meta: {
+    id: "note-1",
+    title: "Test Note",
+    create: new Date("2025-07-06T19:00:00Z"),
+    modified: new Date("2025-07-07T19:00:00Z"),
+    tags: ["test", "note"]
+  },
+  content: "This is a test note content."
+}
