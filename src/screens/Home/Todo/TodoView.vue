@@ -11,6 +11,8 @@ import { createEmptyTodo } from '@/api/utils/todo';
 import { todoOps } from '@/api/todo/todo';
 import { TodoId } from '@/api/types/gerneral';
 import { useToastHelper } from '@/api/utils/toast';
+//! ref: https://www.cssscript.com/liquid-glass-web/
+import { LiquidWeb } from 'liquid-web/vue';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -216,8 +218,11 @@ function handleDeleteTodo(id: TodoId) {
 <template>
   <div class="h-full flex flex-col">
     <PageHeader v-model="visible" title="Todo" :actions="actions" />
-    <Button class="fixed! right-8 bottom-8 z-50" size="large" icon="pi pi-plus" severity="primary" rounded
-      @click="handleTodoDialogToggle(true)" />
+    <LiquidWeb class="fixed! right-12 bottom-12 z-50" :options="{ scale: 30, blur: 1, aberration: 100 }" selector="div">
+      <Button id="addBtn"
+        :class="showDialog ? 'opacity-0 pointer-events-none' : 'bg-primary/50! opacity-100' + ' btn-scale transition-all! duration-300!'"
+        size="large" icon="pi pi-plus" rounded @click="handleTodoDialogToggle(true)" />
+    </LiquidWeb>
     <DataView :value="fliterTodos" class="h-full relative overflow-y-auto flex flex-col" lazy>
       <template #header>
         <!-- @todo sticky header -->
