@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { join } from 'path';
 import { Button, DatePicker, Inplace, InputText } from 'primevue';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, triggerRef, watch } from 'vue';
 
 // const {readonly} = defineProps<{
 //   readonly?: boolean;
@@ -11,16 +11,35 @@ const value = defineModel<Date | string | string[]>({
 })
 const type = typeof value.value === 'string' ? 'string' :
   value.value instanceof Date ? 'date' : 'array';
+// const type = computed(() => typeof value.value === 'string' ? 'string' :
+//   value.value instanceof Date ? 'date' : 'array');
 
-const displayValue = computed(() => type === 'date' ? value.toLocaleString() :
-  type === 'array' ? (value.value as string[]).join(', ') : value)
+// @todo fail to update Date and array, value.value should be set but displayValue is not compute again
+const displayValue = computed(() =>
+  type === 'date' ? value.value.toLocaleString() :
+    type === 'array' ? (value.value as string[]).join(', ') : value.value
+  // if (type === 'date') {
+  //   return value.value.toLocaleString();
+  // } else if (type === 'array') {
+  //   return (value.value as string[]).join(', ');
+  // } else {
+  //   return value.value;
+  // }
+)
+// const displayValue = ref<Date | string>(
+//   // type === 'array' ? (value.value as string[]).join(', ') : value.value as Date | string
+// );
+// watch(value, (newValue) => {
+//   displayValue.value = type === 'date' ? newValue.toLocaleString() :
+//     type === 'array' ? (newValue as string[]).join(', ') : newValue as string
+// }, { immediate: true });
+
 const _editingValue = ref<Date | string>(
   type === 'array' ? (value.value as string[]).join(', ') : value.value as Date | string
 );
 // _editingValue.value = type === 'array' ? (value.value as string[]).join(', ') : value.value as Date | string
 
-function handleEditConfirm() {
-  // @todo fail to update Date and array
+async function handleEditConfirm() {
   if (type === 'array') {
     value.value = (_editingValue.value as string).split(/，,/g).map(item => item.trim()).filter(item => item);
     console.log((_editingValue.value as string).split(/，,/g).map(item => item.trim()).filter(item => item))
@@ -28,6 +47,8 @@ function handleEditConfirm() {
     value.value = _editingValue.value!;
     console.table([value.value, _editingValue.value]);
   }
+  //! vue3 强制刷新！
+  triggerRef(value);
 }
 function handleCancel() {
   _editingValue.value = type === 'array' ? (value.value as string[]).join(', ') : value.value as Date | string;
