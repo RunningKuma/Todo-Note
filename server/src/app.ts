@@ -2,6 +2,7 @@ import express, { json, urlencoded } from 'express';
 // import bodyParser from 'body-parser';
 import authRoutes from './routes/auth';
 import todoRoutes from './routes/todo';
+import noteRoutes from './routes/note';
 import { db } from './config/database';
 // import userRoutes from './routes/user';
 
@@ -16,6 +17,7 @@ db.connect();
 // Routes
 app.use('/auth', authRoutes);
 app.use('/todos', todoRoutes);
+app.use('/notes', noteRoutes);
 // app.use('/users', userRoutes);
 
 export default app;

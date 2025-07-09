@@ -306,7 +306,7 @@ export const testTreeData: NoteTreeNode[] = [
       { key: "1-1", label: "Note 4", type: 'note' }
     ]
   }
-]
+];
 
 export const testNote: Note = {
   meta: {
@@ -317,4 +317,4 @@ export const testNote: Note = {
     tags: ["test", "note"]
   },
   content: "This is a test note content."
-}
+};

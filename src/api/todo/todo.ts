@@ -16,7 +16,7 @@ export const todoOps = {
     const response = await request.get('/todos')
       .catch(res => {
         return { success: false, ...res.response } as AxiosResponse;
-      })
+      });
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 200) {

@@ -220,7 +220,7 @@ export class NoteController {
         return;
       }
 
-      const { name } = req.body;
+      const { name, parent_id } = req.body;
       if (!name || name.trim() === '') {
         res.status(400).json({ success: false, message: '文件夹名称不能为空' });
         return;

@@ -1,10 +1,5 @@
-export type Note_Old = {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { TreeNode } from "primevue/treenode";
+import { NoteFolderId, NoteId, NoteTags } from "./gerneral";
 
 export type NoteMeta = {
   id: NoteId,
@@ -18,4 +13,10 @@ export type NoteContent = string
 export type Note = {
   meta: NoteMeta,
   content: NoteContent
+}
+
+export type NoteTreeNode = Pick<TreeNode, 'label' | 'selectable'> & {
+  key: NoteFolderId | NoteId,
+  type: 'folder' | 'note',
+  children?: NoteTreeNode[],
 }

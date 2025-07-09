@@ -25,4 +25,6 @@ export class UserService {
   async getUserByEmail(email: string): Promise<UserRawData | null> {
     return await User.findUser.findByEmail(email);
   }
+  
+  
 }

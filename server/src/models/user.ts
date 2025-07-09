@@ -11,7 +11,8 @@ export const User = {
             id TEXT PRIMARY KEY NOT NULL,
             email TEXT UNIQUE NOT NULL,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            note_structure TEXT
         )`);
   },
 
