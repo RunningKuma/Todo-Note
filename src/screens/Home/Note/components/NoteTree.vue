@@ -305,7 +305,8 @@ console.log(expendedNum)
           :value='node.children?.length || 0' />
         <Button class="size-6! text-xs! ml-2 menu-button" severity="secondary" rounded outlined
           :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'"
-          @click="(event) => {
+          @click.stop="(event) => {
+            event.stopPropagation
             if (menuNoteId === node.key) {
               closeMenu();
             } else {
