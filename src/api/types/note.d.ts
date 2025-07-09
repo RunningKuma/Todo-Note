@@ -5,7 +5,7 @@ export type NoteMeta = {
   id: NoteId,
   title: string,
   create: Date,
-  modified: Date
+  modified: Date,
   tags?: NoteTags
 }
 export type NoteContent = string

@@ -31,8 +31,8 @@ export const todoOps = {
   /**
    * 创建新的TODO
    */
-  createTodo: async (todoData: Todo): Promise<ApiResponse<AffectNumber>> => {
-    const response = await request.post('/todos', todoData)
+  createTodo: async (todo: Todo): Promise<ApiResponse<AffectNumber>> => {
+    const response = await request.post('/todos', todo)
       .catch(res => {
         console.error('创建TODO失败:', res);
         return { success: false, ...res.response } as AxiosResponse;
