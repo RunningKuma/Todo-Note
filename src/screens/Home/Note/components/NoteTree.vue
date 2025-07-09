@@ -2,7 +2,7 @@
 import { testTreeData } from '@/api/constants/test';
 import { noteOps } from '@/api/note/note';
 import { NoteId } from '@/api/types/gerneral';
-import { NoteTreeNode } from '@/api/types/note';
+import { NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { useToastHelper } from '@/api/utils/toast';
 import { Badge, Button, ButtonGroup, Menu, Tree, TreeExpandedKeys, TreeSelectionKeys } from 'primevue';
 import { MenuItem } from 'primevue/menuitem';
@@ -17,13 +17,15 @@ const { noteTreeNodes = [] } = defineProps<{ noteTreeNodes: NoteTreeNode[] }>();
 // });
 const emit = defineEmits<{
   (e: 'refresh'): void;
-  (e: 'createNote'): void;
+  (e: 'create', type: NoteTreeType): void;
   (e: 'deleteNote', noteId: string): void;
 }>();
 
 const selectedNode = ref<TreeSelectionKeys>({});
 const expandedKeys = ref<TreeExpandedKeys>({});
 const menuNoteId = ref<NoteId>();
+const createTypeDisplay = ref<boolean>(false); // 是否显示创建类型选择
+let createTypeTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const toast = useToastHelper()
 
@@ -109,6 +111,26 @@ const expandNode = (node: TreeNode) => {
   }
 };
 
+function handleAddOFolderClick() {
+  if (createTypeDisplay.value) {
+    //! 居然不能在模板中访问 timeout 相关函数吗()
+    clearTimeout(createTypeTimeout!);
+    createTypeDisplay.value = false;
+    emit('create', 'folder');
+  }
+  else {
+    createTypeDisplay.value = true;
+    createTypeTimeout = setTimeout(() => {
+      createTypeDisplay.value = false;
+    }, 2000);
+  }
+}
+function handleFileClick() {
+  clearTimeout(createTypeTimeout!);
+  createTypeDisplay.value = false;
+  emit('create', 'note')
+}
+
 function handleNoteSelect(e: TreeNode) {
   console.log(e);
   // @todo to implement
@@ -131,8 +153,12 @@ console.log(expendedNum)
             icon="pi pi-angle-up" size="small" severity="secondary" outlined @click="collapseAll" />
           <Button class="h-8! transition-all! duration-300! overflow-hidden" icon="pi pi-refresh" size="small"
             severity="secondary" outlined @click="emit('refresh')" />
-          <Button class="h-8! transition-all! duration-300! overflow-hidden" icon="pi pi-plus" size="small"
-            severity="secondary" outlined @click="emit('createNote')" />
+          <Button class="h-8! transition-all! duration-300! overflow-hidden"
+            :icon="'pi ' + (createTypeDisplay ? 'pi-folder' : 'pi-plus')" size="small" severity="secondary" outlined
+            @click="handleAddOFolderClick" />
+          <Button
+            :class="(createTypeDisplay ? 'w-8!' : 'w-0! p-0! border-l-0') + ' h-8! transition-all! duration-300! overflow-hidden'"
+            icon="pi pi-file" size="small" severity="secondary" outlined @click="handleFileClick" />
         </ButtonGroup>
       </div>
     </template>

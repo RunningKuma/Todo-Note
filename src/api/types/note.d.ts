@@ -15,8 +15,9 @@ export type Note = {
   content: NoteContent
 }
 
+export type NoteTreeType = 'folder' | 'note'
 export type NoteTreeNode = Pick<TreeNode, 'label' | 'selectable'> & {
   key: NoteFolderId | NoteId,
-  type: 'folder' | 'note',
+  type: NoteTreeType,
   children?: NoteTreeNode[],
 }

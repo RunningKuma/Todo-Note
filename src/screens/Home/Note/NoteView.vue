@@ -5,7 +5,7 @@ import NoteTree from './components/NoteTree.vue';
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { noteDiffEngine } from '@/api/note/diffEngine';
 import 'vditor/dist/index.css';
-import { Note, NoteMeta as NoteMetaType, NoteTreeNode } from '@/api/types/note';
+import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { testNote, testTreeData } from '@/api/constants/test';
 import { TreeNode } from 'primevue/treenode';
 import { noteOps } from '@/api/note/note';
@@ -127,17 +127,17 @@ function handleUpdateNoteTree() {
     console.error('Failed to update note tree:', error);
   });
 }
-function handleCreateNote() {
+function handleCreate(type: NoteTreeType) {
   const newNoteMeta: NoteMetaType = createEmptyNoteMeta()
   noteOps.createNote(newNoteMeta).then((res) => {
     if (res.success) {
       noteTreeNodes.value.push({
         key: newNoteMeta.id,
         label: newNoteMeta.title,
-        type: 'note',
+        type: type,
       } as NoteTreeNode);
       handleUpdateNoteTree()
-      toast.success('新建笔记成功');
+      toast.success(`'新建'+'${type === 'folder' ? '文件夹' : '笔记'}'+'成功'`);
     } else {
       toast.error(res.message ?? '未知错误');
     }
@@ -176,7 +176,7 @@ function handleDeleteNote(noteId: string) {
 </script>
 <template>
   <div class="h-full flex overflow-hidden">
-    <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create-note="handleCreateNote"
+    <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create="handleCreate"
       @delete-note="handleDeleteNote" />
     <div class="h- flex-1">
       <!-- @todo title rename 后还需要更新树形结构艹…… -->
