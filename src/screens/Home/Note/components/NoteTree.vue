@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { testTreeData } from '@/api/constants/test';
-import { noteOps } from '@/api/note/note';
 import { NoteId } from '@/api/types/gerneral';
 import { NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { useToastHelper } from '@/api/utils/toast';
@@ -19,6 +17,7 @@ const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'create', type: NoteTreeType): void;
   (e: 'deleteNote', noteId: string): void;
+  (e: 'moveNode', data: { nodeId: string, targetParentId: string | null, targetIndex: number }): void;
 }>();
 
 const selectedNode = ref<TreeSelectionKeys>({});
@@ -26,6 +25,11 @@ const expandedKeys = ref<TreeExpandedKeys>({});
 const menuNoteId = ref<NoteId>();
 const createTypeDisplay = ref<boolean>(false); // 是否显示创建类型选择
 let createTypeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+// 拖拽相关状态
+const draggedNode = ref<NoteTreeNode | null>(null);
+const dragOverNode = ref<NoteTreeNode | null>(null);
+const dragPosition = ref<'top' | 'middle' | 'bottom'>('middle');
 
 const toast = useToastHelper()
 
@@ -131,6 +135,128 @@ function handleFileClick() {
   emit('create', 'note')
 }
 
+// 拖拽处理函数
+const handleDragStart = (event: DragEvent, node: NoteTreeNode) => {
+  draggedNode.value = node;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', node.key as string);
+  }
+};
+
+const handleDragOver = (event: DragEvent, node: NoteTreeNode) => {
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move';
+  }
+
+  dragOverNode.value = node;
+
+  // 计算拖拽位置
+  const rect = (event.target as HTMLElement).getBoundingClientRect();
+  const y = event.clientY - rect.top;
+  const height = rect.height;
+
+  if (y < height / 3) {
+    dragPosition.value = 'top';
+  } else if (y > (height * 2) / 3) {
+    dragPosition.value = 'bottom';
+  } else {
+    dragPosition.value = 'middle';
+  }
+};
+
+const handleDragLeave = () => {
+  dragOverNode.value = null;
+  dragPosition.value = 'middle';
+};
+
+const handleDrop = (event: DragEvent, targetNode: NoteTreeNode) => {
+  event.preventDefault();
+
+  if (!draggedNode.value || draggedNode.value.key === targetNode.key) {
+    return;
+  }
+
+  // 防止将父节点拖到子节点中
+  // 这里 ai 参数反了😅
+  if (isDescendant(draggedNode.value, targetNode)) {
+    toast.error('不能将文件夹移动到其子节点中');
+    return;
+  }
+
+  let targetParentId: string | null = null;
+  let targetIndex = 0;
+
+  if (dragPosition.value === 'middle' && targetNode.type === 'folder') {
+    // 拖到文件夹内部
+    targetParentId = targetNode.key as string;
+    targetIndex = targetNode.children?.length || 0;
+  } else {
+    // 拖到节点前后
+    const result = findNodeParentAndIndex(noteTreeNodes, targetNode.key as string);
+    if (result) {
+      targetParentId = result.parentId;
+      targetIndex = result.index + (dragPosition.value === 'bottom' ? 1 : 0);
+    }
+  }
+
+  emit('moveNode', {
+    nodeId: draggedNode.value.key as string,
+    targetParentId,
+    targetIndex
+  });
+
+  // 重置拖拽状态
+  draggedNode.value = null;
+  dragOverNode.value = null;
+  dragPosition.value = 'middle';
+};
+
+// 检查是否是后代节点
+const isDescendant = (ancestor: NoteTreeNode, node: NoteTreeNode): boolean => {
+  if (!ancestor.children) return false;
+
+  for (const child of ancestor.children) {
+    if (child.key === node.key || isDescendant(child, node)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// 查找节点的父级和索引
+const findNodeParentAndIndex = (nodes: NoteTreeNode[], nodeKey: string, parentId: string | null = null): { parentId: string | null, index: number } | null => {
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (node.key === nodeKey) {
+      return { parentId, index: i };
+    }
+    if (node.children) {
+      const result = findNodeParentAndIndex(node.children, nodeKey, node.key as string);
+      if (result) return result;
+    }
+  }
+  return null;
+};
+
+// 获取拖拽样式
+const getDragClass = (node: NoteTreeNode) => {
+  if (dragOverNode.value?.key === node.key) {
+    switch (dragPosition.value) {
+      case 'top':
+        return 'drag-over-top';
+      case 'bottom':
+        return 'drag-over-bottom';
+      case 'middle':
+        return node.type === 'folder' ? 'drag-over-folder' : '';
+      default:
+        return '';
+    }
+  }
+  return '';
+};
+
 function handleNoteSelect(e: TreeNode) {
   console.log(e);
   // @todo to implement
@@ -167,22 +293,55 @@ console.log(expendedNum)
       <i :class="(node.type === 'folder' ? 'pi pi-folder' : 'pi pi-file') + ' text-primary mr-1'"
         class="text-secondary"></i>
     </template>
-    <template #default="{ node }"><!-- class="flex items-center w-full" style="display: inline-block;" -->
-      <span class="text-secondary">{{ node.label }}</span>
-      <Badge v-if="node.type === 'folder'" class="ml-2" severity="secondary" :value='node.children?.length || 0' />
-      <Button v-if="node.type === 'note'" class="size-6! text-xs! ml-2" severity="secondary" rounded outlined
-        :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'" @click.stop="() => {
-          // menu.value.toggle(event)
-          if (menuNoteId === node.key) {
-            menuNoteId = undefined;
-          } else {
-            menuNoteId = node.key;
-          }
-        }" />
-      <Menu
-        :class="(menuNoteId === node.key ? 'h-40' : 'h-0! border-0!') + ' overflow-hidden absolute z-10 transition-all duration-300'"
-        :model="noteMenuItems" @blur="menuNoteId = undefined" />
-      <!-- ref="menu" -->
+    <template #default="{ node }">
+      <div class="flex items-center w-full relative" :class="getDragClass(node as NoteTreeNode)" draggable="true"
+        @dragstart="(event) => handleDragStart(event, node as NoteTreeNode)"
+        @dragover="(event) => handleDragOver(event, node as NoteTreeNode)" @dragleave="handleDragLeave"
+        @drop="(event) => handleDrop(event, node as NoteTreeNode)">
+        <span class="text-secondary flex-1">{{ node.label }}</span>
+        <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary"
+          :value='node.children?.length || 0' />
+        <Button class="size-6! text-xs! ml-2" severity="secondary" rounded outlined
+          :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'" @click.stop="() => {
+            if (menuNoteId === node.key) {
+              menuNoteId = undefined;
+            } else {
+              menuNoteId = node.key;
+            }
+          }" />
+        <Menu v-if="!(draggedNode && draggedNode.key === node.key)"
+          :class="(menuNoteId === node.key ? 'h-40' : 'h-0! border-0!') + ' overflow-hidden absolute z-10 transition-all duration-300'"
+          :model="noteMenuItems" @blur="menuNoteId = undefined" append-to="body" />
+      </div>
     </template>
   </Tree>
 </template>
+
+<style scoped>
+.drag-over-top {
+  border-top: 2px solid #3b82f6;
+}
+
+.drag-over-bottom {
+  border-bottom: 2px solid #3b82f6;
+}
+
+.drag-over-folder {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px dashed #3b82f6;
+}
+
+/* 拖拽时的光标样式 */
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* 拖拽时降低透明度 */
+.dragging {
+  opacity: 0.5;
+}
+</style>

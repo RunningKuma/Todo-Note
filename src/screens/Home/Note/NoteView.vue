@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Tree } from 'primevue';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import NoteTree from './components/NoteTree.vue';
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
@@ -7,7 +6,6 @@ import { noteDiffEngine } from '@/api/note/diffEngine';
 import 'vditor/dist/index.css';
 import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { testNote, testTreeData } from '@/api/constants/test';
-import { TreeNode } from 'primevue/treenode';
 import { noteOps } from '@/api/note/note';
 import { useToastHelper } from '@/api/utils/toast';
 import { createEmptyNoteMeta } from '@/api/utils/note';
@@ -128,7 +126,7 @@ function handleUpdateNoteTree() {
   });
 }
 function handleCreate(type: NoteTreeType) {
-  const newNoteMeta: NoteMetaType = createEmptyNoteMeta()
+  const newNoteMeta: NoteMetaType = createEmptyNoteMeta(type)
   noteOps.createNote(newNoteMeta).then((res) => {
     if (res.success) {
       noteTreeNodes.value.push({
@@ -172,12 +170,72 @@ function handleDeleteNote(noteId: string) {
     console.error('Failed to delete note:', error);
   });
 }
+// 递归移动节点的工具函数
+const moveNodeInTree = (nodes: NoteTreeNode[], nodeId: string, targetParentId: string | null, targetIndex: number): NoteTreeNode[] => {
+  // 首先找到并移除要移动的节点
+  let nodeToMove: NoteTreeNode | null = null;
+
+  const removeNode = (nodes: NoteTreeNode[]): NoteTreeNode[] => {
+    return nodes.filter(node => {
+      if (node.key === nodeId) {
+        nodeToMove = node;
+        return false;
+      }
+      if (node.children && node.children.length > 0) {
+        node.children = removeNode(node.children);
+      }
+      return true;
+    });
+  };
+
+  // 从树中移除节点
+  const newNodes = removeNode([...nodes]);
+
+  if (!nodeToMove) {
+    return nodes; // 如果没找到节点，返回原数组
+  }
+
+  // 如果目标父级为 null，则插入到根级别
+  if (targetParentId === null) {
+    newNodes.splice(targetIndex, 0, nodeToMove);
+    return newNodes;
+  }
+
+  // 递归查找目标父级并插入节点
+  const insertNode = (nodes: NoteTreeNode[]): NoteTreeNode[] => {
+    return nodes.map(node => {
+      if (node.key === targetParentId) {
+        if (!node.children) {
+          node.children = [];
+        }
+        node.children.splice(targetIndex, 0, nodeToMove!);
+      } else if (node.children && node.children.length > 0) {
+        node.children = insertNode(node.children);
+      }
+      return node;
+    });
+  };
+
+  return insertNode(newNodes);
+};
+
+function handleMoveNode(data: { nodeId: string, targetParentId: string | null, targetIndex: number }) {
+  const { nodeId, targetParentId, targetIndex } = data;
+
+  // 更新本地的 noteTreeNodes
+  noteTreeNodes.value = moveNodeInTree(noteTreeNodes.value, nodeId, targetParentId, targetIndex);
+
+  // 同步到后端
+  handleUpdateNoteTree();
+
+  toast.success('节点移动成功');
+}
 // const noteNode =
 </script>
 <template>
   <div class="h-full flex overflow-hidden">
     <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create="handleCreate"
-      @delete-note="handleDeleteNote" />
+      @delete-note="handleDeleteNote" @move-node="handleMoveNode" />
     <div class="h- flex-1">
       <!-- @todo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="note.meta.title" title="Note" :actions="actions" />
