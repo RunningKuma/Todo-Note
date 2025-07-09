@@ -11,6 +11,7 @@ import { useConfirm } from 'primevue/useconfirm';
 import { createEmptyNoteMeta } from '@/api/utils/note';
 import { noteTreeTool } from '@/api/utils/noteTree';
 import NoteMeta from './components/NoteMeta.vue';
+import { TreeNode } from 'primevue/treenode';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -190,7 +191,7 @@ async function deleteMultipleNotes(noteIds: string[]): Promise<{ success: number
   return { success, failed };
 }
 
-function handleDeleteNote(nodeId: string) {
+function handleDelete(nodeId: string) {
   // 首先找到要删除的节点
   const nodeToDelete = noteTreeTool.findNodeByKey(noteTreeNodes.value, nodeId);
 
@@ -301,12 +302,28 @@ function handleMoveNode(data: { nodeId: string, targetParentId: string | null, t
 
   // toast.success('节点移动成功');
 }
-// const noteNode =
+
+function handleNoteSelect(node: TreeNode) {
+  console.log('Selected node:', node);
+  if (node.type === 'note') {
+    noteOps.getNote(node.key).then((res) => {
+      if (res.success) {
+        note.value = res.data;
+        noteId.value = node.key;
+        noteDiffEngine.setContent(note.value!.content);
+      } else {
+        toast.error(res.message ?? '未知错误');
+      }
+    }).catch((error) => {
+      console.error('Failed to fetch note:', error);
+    });
+  }
+}
 </script>
 <template>
   <div class="h-full flex overflow-hidden">
     <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create="handleCreate"
-      @delete-note="handleDeleteNote" @move-node="handleMoveNode" />
+      @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect" />
     <div class="h- flex-1">
       <!-- @todo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions" />

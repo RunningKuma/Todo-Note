@@ -18,6 +18,7 @@ const emit = defineEmits<{
   (e: 'create', type: NoteTreeType): void;
   (e: 'deleteNote', noteId: string): void;
   (e: 'moveNode', data: { nodeId: string, targetParentId: string | null, targetIndex: number }): void;
+  (e: 'select', node: TreeNode): void;
 }>();
 
 const selectedNode = ref<TreeSelectionKeys>({});
@@ -262,16 +263,12 @@ const getDragClass = (node: NoteTreeNode) => {
   return '';
 };
 
-function handleNoteSelect(e: TreeNode) {
-  console.log(e);
-  // @todo to implement
-}
 console.log(expendedNum)
 </script>
 <template>
   <Tree :value="noteTreeNodes" v-model:selection-keys="selectedNode" v-model:expanded-keys="expandedKeys"
     class="w-note-sidebar h-full overflow-y-auto" selectionMode="single" :filter="true" filterBy="label"
-    filterPlaceholder="搜索笔记..." @node-select="handleNoteSelect">
+    filterPlaceholder="搜索笔记..." @node-select="emit('select', $event)">
     <template #header>
       <div class="flex">
         <span class="text-lg font-semibold">我的笔记</span>
