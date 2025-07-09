@@ -1,4 +1,4 @@
-import { noteDiffEngine } from '../note/note';
+import { noteDiffEngine } from '../note/diffEngine';
 
 /**
  * 笔记版本管理使用示例

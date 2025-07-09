@@ -1,4 +1,4 @@
-import type { NoteVersion } from '../note/note';
+import type { NoteVersion } from '../note/diffEngine';
 
 export interface DBNote {
   id: string;

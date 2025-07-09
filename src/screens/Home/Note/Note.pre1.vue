@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Button } from 'primevue';
-import { NoteVersionRaw, noteDiffEngine, } from '@/api/note/note';
+import { NoteVersionRaw, noteDiffEngine, } from '@/api/note/diffEngine';
 import 'vditor/dist/index.css';
 import { noteUtils } from '@/api/utils/note';
 

@@ -3,7 +3,7 @@ import { Tree } from 'primevue';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import NoteTree from './components/NoteTree.vue';
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
-import { noteDiffEngine } from '@/api/note/note';
+import { noteDiffEngine } from '@/api/note/diffEngine';
 import 'vditor/dist/index.css';
 import { Note, NoteTreeNode } from '@/api/types/note';
 import { testNote, testTreeData } from '@/api/constants/test';
@@ -56,6 +56,7 @@ watch(
     // diffHtml.value = '';
     // selectedVersions.value = [];
     noteDiffEngine.updateNoteId(newId);
+    if (!noteDiffEngine.isInitialized) return
     noteDiffEngine.setContent(note.value.content);
   },
   { immediate: true }
@@ -66,9 +67,9 @@ onMounted(async () => {
     await noteDiffEngine.initVditor(vditorElement.value, {
       height: '100%',
       placeholder: 'Start Typing Here...',
-
     });
-    // noteDiffEngine.setAutoSave(true, 2 * 60 * 1000);
+    noteDiffEngine.setAutoSave(true, 2 * 60 * 1000);
+    noteDiffEngine.setContent(note.value.content);
   }
 });
 
