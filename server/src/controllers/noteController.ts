@@ -48,6 +48,7 @@ export class NoteController {
   public updateFolders = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const userId = req.user?.id;
+      //@todo 需要添加先验证用户存在的检查😂
       if (!userId) {
         res.status(401).json({ success: false, message: '未授权访问' });
         return;

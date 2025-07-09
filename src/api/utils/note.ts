@@ -1,3 +1,5 @@
+import { Note, NoteMeta, NoteTreeType } from "../types/note";
+
 // 工具函数
 export const noteUtils = {
   /**
@@ -52,3 +54,12 @@ export const noteUtils = {
     return { additions, deletions, changes };
   }
 };
+export function createEmptyNoteMeta(type: NoteTreeType = 'note'): NoteMeta {
+  return {
+    id: window.crypto.randomUUID(),
+    title: '新建' + (type === 'folder' ? '文件夹' : '笔记'),
+    create: new Date(),
+    modified: new Date(),
+    tags: [],
+  };
+}

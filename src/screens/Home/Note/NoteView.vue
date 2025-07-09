@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { Tree } from 'primevue';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import NoteTree from './components/NoteTree.vue';
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
-import { noteDiffEngine } from '@/api/note/note';
+import { noteDiffEngine } from '@/api/note/diffEngine';
 import 'vditor/dist/index.css';
-import { Note, NoteTreeNode } from '@/api/types/note';
+import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { testNote, testTreeData } from '@/api/constants/test';
+import { noteOps } from '@/api/note/note';
+import { useToastHelper } from '@/api/utils/toast';
+import { createEmptyNoteMeta } from '@/api/utils/note';
 import NoteMeta from './components/NoteMeta.vue';
-import { TreeNode } from 'primevue/treenode';
+import { NoteId } from '@/api/types/gerneral';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -45,9 +47,26 @@ const actions: PageHeaderAction[] = [
   }
 ]
 const vditorElement = ref<HTMLDivElement | undefined>();
+const toast = useToastHelper()
+
+
 const noteId = ref('demo-note-001');
 const note = ref<Note>(testNote);
 const noteTreeNodes = ref<NoteTreeNode[]>(testTreeData)
+
+function updateNoteTree() {
+  noteOps.getNoteTree().then((res) => {
+    if (res.success) {
+      noteTreeNodes.value = res.data!;
+    } else {
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to fetch note tree:', error);
+  })
+}
+updateNoteTree();
+
 watch(
   () => noteId.value,
   async (newId) => {
@@ -56,31 +75,169 @@ watch(
     // diffHtml.value = '';
     // selectedVersions.value = [];
     noteDiffEngine.updateNoteId(newId);
+    if (!noteDiffEngine.isInitialized) return
     noteDiffEngine.setContent(note.value.content);
   },
   { immediate: true }
 );
+watch(
+  () => note.value.meta.title,
+  async () => {
+    updateNoteTree()
+  }
+)
 
 onMounted(async () => {
   if (vditorElement.value) {
     await noteDiffEngine.initVditor(vditorElement.value, {
       height: '100%',
       placeholder: 'Start Typing Here...',
-
     });
-    // noteDiffEngine.setAutoSave(true, 2 * 60 * 1000);
+    noteDiffEngine.setAutoSave(true, 2 * 60 * 1000);
+    noteDiffEngine.setContent(note.value.content);
   }
 });
 
 onUnmounted(() => {
   noteDiffEngine.destroy();
 });
+
+function handleNoteTreeRefresh() {
+  noteOps.getNoteTree().then((res) => {
+    if (res.success) {
+      noteTreeNodes.value = res.data!;
+      toast.success('笔记目录刷新成功');
+    } else {
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to fetch note tree:', error);
+  });
+}
+function handleUpdateNoteTree() {
+  noteOps.updateNoteTree(noteTreeNodes.value).then((res) => {
+    if (res.success) {
+      toast.success('笔记目录更新成功');
+    } else {
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to update note tree:', error);
+  });
+}
+function handleCreate(type: NoteTreeType) {
+  const newNoteMeta: NoteMetaType = createEmptyNoteMeta(type)
+  noteOps.createNote(newNoteMeta).then((res) => {
+    if (res.success) {
+      noteTreeNodes.value.push({
+        key: newNoteMeta.id,
+        label: newNoteMeta.title,
+        type: type,
+      } as NoteTreeNode);
+      handleUpdateNoteTree()
+      toast.success(`'新建'+'${type === 'folder' ? '文件夹' : '笔记'}'+'成功'`);
+    } else {
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to create note:', error);
+  });
+}
+const removeNodeRecursively = (nodes: NoteTreeNode[], noteId: NoteId): NoteTreeNode[] => {
+  return nodes.filter(node => {
+    if (node.key === noteId) {
+      return false; // 删除匹配的节点
+    }
+    if (node.children && node.children.length > 0) {
+      node.children = removeNodeRecursively(node.children, noteId);
+    }
+    return true;
+  });
+}
+function handleDeleteNote(noteId: string) {
+  noteOps.deleteNote(noteId).then((res) => {
+    if (res.success) {
+      noteTreeNodes.value = removeNodeRecursively(noteTreeNodes.value, noteId);
+      handleUpdateNoteTree()
+      toast.success('笔记删除成功');
+    } else {
+      if (res.message === '笔记不存在') {
+        noteTreeNodes.value = removeNodeRecursively(noteTreeNodes.value, noteId);
+      }
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to delete note:', error);
+  });
+}
+// 递归移动节点的工具函数
+const moveNodeInTree = (nodes: NoteTreeNode[], nodeId: string, targetParentId: string | null, targetIndex: number): NoteTreeNode[] => {
+  // 首先找到并移除要移动的节点
+  let nodeToMove: NoteTreeNode | null = null;
+
+  const removeNode = (nodes: NoteTreeNode[]): NoteTreeNode[] => {
+    return nodes.filter(node => {
+      if (node.key === nodeId) {
+        nodeToMove = node;
+        return false;
+      }
+      if (node.children && node.children.length > 0) {
+        node.children = removeNode(node.children);
+      }
+      return true;
+    });
+  };
+
+  // 从树中移除节点
+  const newNodes = removeNode([...nodes]);
+
+  if (!nodeToMove) {
+    return nodes; // 如果没找到节点，返回原数组
+  }
+
+  // 如果目标父级为 null，则插入到根级别
+  if (targetParentId === null) {
+    newNodes.splice(targetIndex, 0, nodeToMove);
+    return newNodes;
+  }
+
+  // 递归查找目标父级并插入节点
+  const insertNode = (nodes: NoteTreeNode[]): NoteTreeNode[] => {
+    return nodes.map(node => {
+      if (node.key === targetParentId) {
+        if (!node.children) {
+          node.children = [];
+        }
+        node.children.splice(targetIndex, 0, nodeToMove!);
+      } else if (node.children && node.children.length > 0) {
+        node.children = insertNode(node.children);
+      }
+      return node;
+    });
+  };
+
+  return insertNode(newNodes);
+};
+
+function handleMoveNode(data: { nodeId: string, targetParentId: string | null, targetIndex: number }) {
+  const { nodeId, targetParentId, targetIndex } = data;
+
+  // 更新本地的 noteTreeNodes
+  noteTreeNodes.value = moveNodeInTree(noteTreeNodes.value, nodeId, targetParentId, targetIndex);
+
+  // 同步到后端
+  handleUpdateNoteTree();
+
+  toast.success('节点移动成功');
+}
 // const noteNode =
 </script>
 <template>
   <div class="h-full flex overflow-hidden">
-    <NoteTree :note-tree-nodes="noteTreeNodes" />
+    <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create="handleCreate"
+      @delete-note="handleDeleteNote" @move-node="handleMoveNode" />
     <div class="h- flex-1">
+      <!-- @todo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="note.meta.title" title="Note" :actions="actions" />
       <NoteMeta v-model="note.meta" class="px-6 pb-1" />
       <div ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>

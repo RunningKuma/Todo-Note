@@ -10,7 +10,7 @@ router.use(authenticateToken);
 
 // 笔记 API 路由
 router.get('/folders', noteController.getFolders);          // 1. 获取用户笔记目录结构
-router.post('/folders', noteController.updateFolders);      // 2. 更新用户笔记目录结构
+router.put('/folders', noteController.updateFolders);      // 2. 更新用户笔记目录结构
 router.get('/:id', noteController.getNote);                // 3. 根据ID获取笔记
 router.post('/', noteController.createNote);               // 4. 创建新笔记
 router.put('/', noteController.updateNote);                // 5. 更新笔记
