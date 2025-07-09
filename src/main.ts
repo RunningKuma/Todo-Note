@@ -3,6 +3,7 @@ import App from "@/App.vue";
 import router from "@/router";
 import PrimeVue from 'primevue/config';
 import ToastService from 'primevue/toastservice';
+import ConfirmationService from 'primevue/confirmationservice';
 import Aura from '@primeuix/themes/aura';
 import { definePreset } from "@primeuix/themes";
 import { Tooltip } from "primevue";
@@ -59,5 +60,6 @@ app.use(PrimeVue, {
   }
 })
   .use(ToastService)
+  .use(ConfirmationService)
   .use(router)
   .mount("#app");

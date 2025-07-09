@@ -7,6 +7,7 @@ import 'vditor/dist/index.css';
 import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { noteOps } from '@/api/note/note';
 import { useToastHelper } from '@/api/utils/toast';
+import { useConfirm } from 'primevue/useconfirm';
 import { createEmptyNoteMeta } from '@/api/utils/note';
 import { noteTreeTool } from '@/api/utils/noteTree';
 import NoteMeta from './components/NoteMeta.vue';
@@ -46,7 +47,8 @@ const actions: PageHeaderAction[] = [
   }
 ]
 const vditorElement = ref<HTMLDivElement | undefined>();
-const toast = useToastHelper()
+const toast = useToastHelper();
+const confirm = useConfirm();
 
 
 const noteId = ref('demo-note-001');
@@ -160,21 +162,133 @@ function handleCreate(type: NoteTreeType) {
     console.error('Failed to create note:', error);
   });
 }
-function handleDeleteNote(noteId: string) {
-  noteOps.deleteNote(noteId).then((res) => {
-    if (res.success) {
-      noteTreeNodes.value = noteTreeTool.removeNodeRecursively(noteTreeNodes.value, noteId);
-      handleUpdateNoteTree()
-      toast.success('笔记删除成功');
+// 删除单个笔记的函数
+async function deleteNote(noteId: string): Promise<boolean> {
+  try {
+    const res = await noteOps.deleteNote(noteId);
+    return res.success;
+  } catch (error) {
+    toast.error('Failed to delete note');
+    return false;
+  }
+}
+
+// 批量删除笔记的函数
+async function deleteMultipleNotes(noteIds: string[]): Promise<{ success: number; failed: number }> {
+  let success = 0;
+  let failed = 0;
+
+  for (const noteId of noteIds) {
+    const result = await deleteNote(noteId);
+    if (result) {
+      success++;
     } else {
-      if (res.message === '笔记不存在') {
-        noteTreeNodes.value = noteTreeTool.removeNodeRecursively(noteTreeNodes.value, noteId);
-      }
-      toast.error(res.message ?? '未知错误');
+      failed++;
     }
-  }).catch((error) => {
-    console.error('Failed to delete note:', error);
-  });
+  }
+
+  return { success, failed };
+}
+
+function handleDeleteNote(nodeId: string) {
+  // 首先找到要删除的节点
+  const nodeToDelete = noteTreeTool.findNodeByKey(noteTreeNodes.value, nodeId);
+
+  if (!nodeToDelete) {
+    toast.error('未找到要删除的节点');
+    return;
+  }
+
+  if (nodeToDelete.type === 'folder') {
+    // 如果是文件夹，需要删除其下所有笔记
+    const allNoteIds = noteTreeTool.collectAllNoteIds(nodeToDelete);
+
+    if (allNoteIds.length === 0) {
+      // 空文件夹，直接删除
+      noteTreeNodes.value = noteTreeTool.removeNodeRecursively(noteTreeNodes.value, nodeId);
+      handleUpdateNoteTree();
+      toast.success('文件夹删除成功');
+      return;
+    }
+
+    // 显示确认对话框
+    const confirmMessage = `此文件夹包含 ${allNoteIds.length} 个笔记，删除文件夹将同时删除所有笔记。确定要继续吗？`;
+
+    confirm.require({
+      message: confirmMessage,
+      header: '确认删除',
+      icon: 'pi pi-exclamation-triangle',
+      rejectProps: {
+        label: '取消',
+        severity: 'secondary',
+        outlined: true
+      },
+      acceptProps: {
+        label: '确定删除',
+        severity: 'danger'
+      },
+      accept: () => {
+        // 批量删除所有笔记
+        deleteMultipleNotes(allNoteIds).then(({ success, failed }) => {
+          if (failed > 0) {
+            toast.error(`删除失败：${failed} 个笔记删除失败，${success} 个笔记删除成功`);
+          } else {
+            toast.success(`文件夹删除成功，共删除 ${success} 个笔记`);
+          }
+
+          // 更新树结构（无论是否完全成功都要更新，因为可能有部分删除成功）
+          noteTreeNodes.value = noteTreeTool.removeNodeRecursively(noteTreeNodes.value, nodeId);
+          handleUpdateNoteTree();
+        }).catch((error) => {
+          console.error('Failed to delete folder:', error);
+          toast.error('删除文件夹时发生错误');
+        });
+      },
+      reject: () => {
+        // 用户取消了删除操作
+        console.log('用户取消了删除操作');
+      }
+    });
+
+  } else {
+    // 如果是普通笔记，显示确认对话框
+    confirm.require({
+      message: `确定要删除笔记 "${nodeToDelete.label}" 吗？`,
+      header: '确认删除笔记',
+      icon: 'pi pi-exclamation-triangle',
+      rejectProps: {
+        label: '取消',
+        severity: 'secondary',
+        outlined: true
+      },
+      acceptProps: {
+        label: '确定删除',
+        severity: 'danger'
+      },
+      accept: () => {
+        deleteNote(nodeId).then((success) => {
+          if (success) {
+            noteTreeNodes.value = noteTreeTool.removeNodeRecursively(noteTreeNodes.value, nodeId);
+            handleUpdateNoteTree();
+            toast.success('笔记删除成功');
+          } else {
+            // 即使删除失败，也检查是否是"笔记不存在"的情况
+            noteOps.deleteNote(nodeId).then((res) => {
+              if (res.message === '笔记不存在') {
+                noteTreeNodes.value = noteTreeTool.removeNodeRecursively(noteTreeNodes.value, nodeId);
+                handleUpdateNoteTree();
+              }
+              toast.error(res.message ?? '删除笔记失败');
+            });
+          }
+        });
+      },
+      reject: () => {
+        // 用户取消了删除操作
+        console.log('用户取消了删除操作');
+      }
+    });
+  }
 }
 function handleMoveNode(data: { nodeId: string, targetParentId: string | null, targetIndex: number }) {
   const { nodeId, targetParentId, targetIndex } = data;
@@ -185,7 +299,7 @@ function handleMoveNode(data: { nodeId: string, targetParentId: string | null, t
   // 同步到后端
   handleUpdateNoteTree();
 
-  toast.success('节点移动成功');
+  // toast.success('节点移动成功');
 }
 // const noteNode =
 </script>
@@ -200,8 +314,7 @@ function handleMoveNode(data: { nodeId: string, targetParentId: string | null, t
       <div v-if="note" ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>
       <div v-else class="flex items-center justify-center h-full">
         <p class="text-gray-500">请选择一个笔记查看内容</p>
-
-    </div>
+      </div>
     </div>
   </div>
 </template>

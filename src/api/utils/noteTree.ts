@@ -172,5 +172,45 @@ export const noteTreeTool = {
 
 		findPath(nodes, []);
 		return path;
-	}
+	},
+
+	/**
+	 * 收集节点及其所有子孙节点的ID
+	 * @param node 要收集的节点
+	 * @returns 所有节点ID的数组
+	 */
+	collectAllNodeIds(node: NoteTreeNode): string[] {
+		const ids: string[] = [node.key as string];
+
+		if (node.children && node.children.length > 0) {
+			for (const child of node.children) {
+				ids.push(...this.collectAllNodeIds(child));
+			}
+		}
+
+		return ids;
+	},
+
+	/**
+	 * 收集指定节点下所有笔记类型的节点ID
+	 * @param node 要收集的节点
+	 * @returns 所有笔记类型节点ID的数组
+	 */
+	collectAllNoteIds(node: NoteTreeNode): string[] {
+		const noteIds: string[] = [];
+
+		// 如果当前节点是笔记类型，添加到结果中
+		if (node.type === 'note') {
+			noteIds.push(node.key as string);
+		}
+
+		// 递归收集子节点中的笔记
+		if (node.children && node.children.length > 0) {
+			for (const child of node.children) {
+				noteIds.push(...this.collectAllNoteIds(child));
+			}
+		}
+
+		return noteIds;
+	},
 }
