@@ -2,6 +2,7 @@
 import { NoteId } from '@/api/types/gerneral';
 import { NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { useToastHelper } from '@/api/utils/toast';
+import { noteTreeTool } from '@/api/utils/noteTree';
 import { Badge, Button, ButtonGroup, Tree, TreeExpandedKeys, TreeSelectionKeys } from 'primevue';
 import { TreeNode } from 'primevue/treenode';
 import { computed, ref } from 'vue';
@@ -68,18 +69,18 @@ const menuItems = [
 // 显示菜单
 const showMenu = (event: MouseEvent, node: NoteTreeNode) => {
   event.stopPropagation();
-  
+
   const buttonRect = (event.target as HTMLElement).getBoundingClientRect();
-  
+
   menuPosition.value = {
     x: buttonRect.right + 8, // 按钮右侧 8px
     y: buttonRect.top
   };
-  
+
   currentMenuNode.value = node;
   menuNoteId.value = node.key as NoteId;
   menuVisible.value = true;
-  
+
   // 添加点击外部关闭菜单的监听
   setTimeout(() => {
     document.addEventListener('click', handleClickOutside);
@@ -211,7 +212,7 @@ const handleDrop = (event: DragEvent, targetNode: NoteTreeNode) => {
 
   // 防止将父节点拖到子节点中
   // 这里 ai 参数反了😅
-  if (isDescendant(draggedNode.value, targetNode)) {
+  if (noteTreeTool.isDescendant(draggedNode.value, targetNode)) {
     toast.error('不能将文件夹移动到其子节点中');
     return;
   }
@@ -225,7 +226,7 @@ const handleDrop = (event: DragEvent, targetNode: NoteTreeNode) => {
     targetIndex = targetNode.children?.length || 0;
   } else {
     // 拖到节点前后
-    const result = findNodeParentAndIndex(noteTreeNodes, targetNode.key as string);
+    const result = noteTreeTool.findNodeParentAndIndex(noteTreeNodes, targetNode.key as string);
     if (result) {
       targetParentId = result.parentId;
       targetIndex = result.index + (dragPosition.value === 'bottom' ? 1 : 0);
@@ -242,33 +243,6 @@ const handleDrop = (event: DragEvent, targetNode: NoteTreeNode) => {
   draggedNode.value = null;
   dragOverNode.value = null;
   dragPosition.value = 'middle';
-};
-
-// 检查是否是后代节点
-const isDescendant = (ancestor: NoteTreeNode, node: NoteTreeNode): boolean => {
-  if (!ancestor.children) return false;
-
-  for (const child of ancestor.children) {
-    if (child.key === node.key || isDescendant(child, node)) {
-      return true;
-    }
-  }
-  return false;
-};
-
-// 查找节点的父级和索引
-const findNodeParentAndIndex = (nodes: NoteTreeNode[], nodeKey: string, parentId: string | null = null): { parentId: string | null, index: number } | null => {
-  for (let i = 0; i < nodes.length; i++) {
-    const node = nodes[i];
-    if (node.key === nodeKey) {
-      return { parentId, index: i };
-    }
-    if (node.children) {
-      const result = findNodeParentAndIndex(node.children, nodeKey, node.key as string);
-      if (result) return result;
-    }
-  }
-  return null;
 };
 
 // 获取拖拽样式
@@ -333,7 +307,7 @@ console.log(expendedNum)
         <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary"
           :value='node.children?.length || 0' />
         <Button class="size-6! text-xs! ml-2 menu-button" severity="secondary" rounded outlined
-          :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'" 
+          :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'"
           @click="(event) => {
             if (menuNoteId === node.key) {
               closeMenu();
@@ -344,9 +318,9 @@ console.log(expendedNum)
       </div>
     </template>
   </Tree>
-  
+
   <!-- 自定义菜单 -->
-  <div v-if="menuVisible" 
+  <div v-if="menuVisible"
        class="note-menu fixed z-50 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-32"
        :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }">
     <div v-for="item in menuItems" :key="item.label"

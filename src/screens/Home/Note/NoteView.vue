@@ -8,8 +8,8 @@ import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType } from '@/ap
 import { noteOps } from '@/api/note/note';
 import { useToastHelper } from '@/api/utils/toast';
 import { createEmptyNoteMeta } from '@/api/utils/note';
+import { noteTreeTool } from '@/api/utils/noteTree';
 import NoteMeta from './components/NoteMeta.vue';
-import { NoteId } from '@/api/types/gerneral';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -160,26 +160,15 @@ function handleCreate(type: NoteTreeType) {
     console.error('Failed to create note:', error);
   });
 }
-const removeNodeRecursively = (nodes: NoteTreeNode[], noteId: NoteId): NoteTreeNode[] => {
-  return nodes.filter(node => {
-    if (node.key === noteId) {
-      return false; // 删除匹配的节点
-    }
-    if (node.children && node.children.length > 0) {
-      node.children = removeNodeRecursively(node.children, noteId);
-    }
-    return true;
-  });
-}
 function handleDeleteNote(noteId: string) {
   noteOps.deleteNote(noteId).then((res) => {
     if (res.success) {
-      noteTreeNodes.value = removeNodeRecursively(noteTreeNodes.value, noteId);
+      noteTreeNodes.value = noteTreeTool.removeNodeRecursively(noteTreeNodes.value, noteId);
       handleUpdateNoteTree()
       toast.success('笔记删除成功');
     } else {
       if (res.message === '笔记不存在') {
-        noteTreeNodes.value = removeNodeRecursively(noteTreeNodes.value, noteId);
+        noteTreeNodes.value = noteTreeTool.removeNodeRecursively(noteTreeNodes.value, noteId);
       }
       toast.error(res.message ?? '未知错误');
     }
@@ -187,60 +176,11 @@ function handleDeleteNote(noteId: string) {
     console.error('Failed to delete note:', error);
   });
 }
-// 递归移动节点的工具函数
-const moveNodeInTree = (nodes: NoteTreeNode[], nodeId: string, targetParentId: string | null, targetIndex: number): NoteTreeNode[] => {
-  // 首先找到并移除要移动的节点
-  let nodeToMove: NoteTreeNode | null = null;
-
-  const removeNode = (nodes: NoteTreeNode[]): NoteTreeNode[] => {
-    return nodes.filter(node => {
-      if (node.key === nodeId) {
-        nodeToMove = node;
-        return false;
-      }
-      if (node.children && node.children.length > 0) {
-        node.children = removeNode(node.children);
-      }
-      return true;
-    });
-  };
-
-  // 从树中移除节点
-  const newNodes = removeNode([...nodes]);
-
-  if (!nodeToMove) {
-    return nodes; // 如果没找到节点，返回原数组
-  }
-
-  // 如果目标父级为 null，则插入到根级别
-  if (targetParentId === null) {
-    newNodes.splice(targetIndex, 0, nodeToMove);
-    return newNodes;
-  }
-
-  // 递归查找目标父级并插入节点
-  const insertNode = (nodes: NoteTreeNode[]): NoteTreeNode[] => {
-    return nodes.map(node => {
-      if (node.key === targetParentId) {
-        if (!node.children) {
-          node.children = [];
-        }
-        node.children.splice(targetIndex, 0, nodeToMove!);
-      } else if (node.children && node.children.length > 0) {
-        node.children = insertNode(node.children);
-      }
-      return node;
-    });
-  };
-
-  return insertNode(newNodes);
-};
-
 function handleMoveNode(data: { nodeId: string, targetParentId: string | null, targetIndex: number }) {
   const { nodeId, targetParentId, targetIndex } = data;
 
   // 更新本地的 noteTreeNodes
-  noteTreeNodes.value = moveNodeInTree(noteTreeNodes.value, nodeId, targetParentId, targetIndex);
+  noteTreeNodes.value = noteTreeTool.moveNodeInTree(noteTreeNodes.value, nodeId, targetParentId, targetIndex);
 
   // 同步到后端
   handleUpdateNoteTree();
