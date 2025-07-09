@@ -18,6 +18,7 @@ const { noteTreeNodes = [] } = defineProps<{ noteTreeNodes: NoteTreeNode[] }>();
 const emit = defineEmits<{
   (e: 'refresh'): void;
   (e: 'createNote'): void;
+  (e: 'deleteNote', noteId: string): void;
 }>();
 
 const selectedNode = ref<TreeSelectionKeys>({});
@@ -56,14 +57,7 @@ const noteMenuItems: MenuItem[] = [
         command: (event) => {
           // @todo to implement
           event.originalEvent.stopPropagation();
-          noteOps.deleteNote(menuNoteId.value!).then((res) => {
-            if (res.success) {
-              toast.success('笔记删除成功');
-              emit('refresh');
-            } else {
-              toast.error(res.message ?? '笔记删除失败：未知错误');
-            }
-          });
+          emit('deleteNote', menuNoteId.value!);
         }
       },
 

@@ -12,6 +12,7 @@ import { noteOps } from '@/api/note/note';
 import { useToastHelper } from '@/api/utils/toast';
 import { createEmptyNoteMeta } from '@/api/utils/note';
 import NoteMeta from './components/NoteMeta.vue';
+import { NoteId } from '@/api/types/gerneral';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -115,6 +116,17 @@ function handleNoteTreeRefresh() {
     console.error('Failed to fetch note tree:', error);
   });
 }
+function handleUpdateNoteTree() {
+  noteOps.updateNoteTree(noteTreeNodes.value).then((res) => {
+    if (res.success) {
+      toast.success('笔记目录更新成功');
+    } else {
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to update note tree:', error);
+  });
+}
 function handleCreateNote() {
   const newNoteMeta: NoteMetaType = createEmptyNoteMeta()
   noteOps.createNote(newNoteMeta).then((res) => {
@@ -124,6 +136,7 @@ function handleCreateNote() {
         label: newNoteMeta.title,
         type: 'note',
       } as NoteTreeNode);
+      handleUpdateNoteTree()
       toast.success('新建笔记成功');
     } else {
       toast.error(res.message ?? '未知错误');
@@ -132,11 +145,39 @@ function handleCreateNote() {
     console.error('Failed to create note:', error);
   });
 }
+const removeNodeRecursively = (nodes: NoteTreeNode[], noteId: NoteId): NoteTreeNode[] => {
+  return nodes.filter(node => {
+    if (node.key === noteId) {
+      return false; // 删除匹配的节点
+    }
+    if (node.children && node.children.length > 0) {
+      node.children = removeNodeRecursively(node.children, noteId);
+    }
+    return true;
+  });
+}
+function handleDeleteNote(noteId: string) {
+  noteOps.deleteNote(noteId).then((res) => {
+    if (res.success) {
+      noteTreeNodes.value = removeNodeRecursively(noteTreeNodes.value, noteId);
+      handleUpdateNoteTree()
+      toast.success('笔记删除成功');
+    } else {
+      if (res.message === '笔记不存在') {
+        noteTreeNodes.value = removeNodeRecursively(noteTreeNodes.value, noteId);
+      }
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to delete note:', error);
+  });
+}
 // const noteNode =
 </script>
 <template>
   <div class="h-full flex overflow-hidden">
-    <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create-note="handleCreateNote" />
+    <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create-note="handleCreateNote"
+      @delete-note="handleDeleteNote" />
     <div class="h- flex-1">
       <!-- @todo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="note.meta.title" title="Note" :actions="actions" />

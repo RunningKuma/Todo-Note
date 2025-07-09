@@ -31,7 +31,7 @@ export const noteOps = {
   updateNoteTree: async (treeData: NoteTreeNode[]): Promise<ApiResponse<{ success: boolean }>> => {
     // _testNoteTreeData = treeData;
     // return { success: true, data: { success: true } }
-    const response = await request.put('/notes/folders', treeData)
+    const response = await request.put('/notes/folders', { data: treeData })
       .catch(res => {
         console.error('更新笔记目录失败:', res);
         return { success: false, ...res.response } as AxiosResponse;
@@ -87,7 +87,7 @@ export const noteOps = {
    * 更新笔记
    */
   updateNote: async (note: Note): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await request.put(`/notes`, note)
+    const response = await request.put(`/notes`, { data: note })
       .catch(res => {
         console.error('更新笔记失败:', res);
         return { success: false, ...res.response } as AxiosResponse;
