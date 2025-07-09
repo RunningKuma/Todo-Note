@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import NoteTree from './components/NoteTree.vue';
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { noteDiffEngine } from '@/api/note/diffEngine';
 import 'vditor/dist/index.css';
 import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType } from '@/api/types/note';
-import { testNote, testTreeData } from '@/api/constants/test';
 import { noteOps } from '@/api/note/note';
 import { useToastHelper } from '@/api/utils/toast';
 import { createEmptyNoteMeta } from '@/api/utils/note';
@@ -51,9 +50,27 @@ const toast = useToastHelper()
 
 
 const noteId = ref('demo-note-001');
-const note = ref<Note>(testNote);
-const noteTreeNodes = ref<NoteTreeNode[]>(testTreeData)
+const note = ref<Note>();
+const noteTreeNodes = ref<NoteTreeNode[]>([])
 
+// 创建计算属性来处理 v-model 绑定
+const noteTitle = computed({
+  get: () => note.value?.meta.title || '',
+  set: (value: string) => {
+    if (note.value) {
+      note.value.meta.title = value;
+    }
+  }
+});
+
+const noteMetaProxy = computed({
+  get: () => note.value?.meta || {} as NoteMetaType,
+  set: (value: NoteMetaType) => {
+    if (note.value) {
+      note.value.meta = value;
+    }
+  }
+});
 function updateNoteTree() {
   noteOps.getNoteTree().then((res) => {
     if (res.success) {
@@ -75,20 +92,20 @@ watch(
     // diffHtml.value = '';
     // selectedVersions.value = [];
     noteDiffEngine.updateNoteId(newId);
-    if (!noteDiffEngine.isInitialized) return
+    if (!note.value ||!noteDiffEngine.isInitialized) return
     noteDiffEngine.setContent(note.value.content);
   },
   { immediate: true }
 );
 watch(
-  () => note.value.meta.title,
+  () => note.value?.meta.title,
   async () => {
     updateNoteTree()
   }
 )
 
 onMounted(async () => {
-  if (vditorElement.value) {
+  if (note.value&&vditorElement.value) {
     await noteDiffEngine.initVditor(vditorElement.value, {
       height: '100%',
       placeholder: 'Start Typing Here...',
@@ -135,7 +152,7 @@ function handleCreate(type: NoteTreeType) {
         type: type,
       } as NoteTreeNode);
       handleUpdateNoteTree()
-      toast.success(`'新建'+'${type === 'folder' ? '文件夹' : '笔记'}'+'成功'`);
+      toast.success(`新建${type === 'folder' ? '文件夹' : '笔记'}成功`);
     } else {
       toast.error(res.message ?? '未知错误');
     }
@@ -238,10 +255,13 @@ function handleMoveNode(data: { nodeId: string, targetParentId: string | null, t
       @delete-note="handleDeleteNote" @move-node="handleMoveNode" />
     <div class="h- flex-1">
       <!-- @todo title rename 后还需要更新树形结构艹…… -->
-      <PageHeader v-model:visible="visible" v-model:note_title="note.meta.title" title="Note" :actions="actions" />
-      <NoteMeta v-model="note.meta" class="px-6 pb-1" />
-      <div ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>
+      <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions" />
+      <NoteMeta v-if="note" v-model="noteMetaProxy" class="px-6 pb-1" />
+      <div v-if="note" ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>
+      <div v-else class="flex items-center justify-center h-full">
+        <p class="text-gray-500">请选择一个笔记查看内容</p>
 
+    </div>
     </div>
   </div>
 </template>
