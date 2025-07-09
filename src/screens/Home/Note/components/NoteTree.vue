@@ -2,8 +2,7 @@
 import { NoteId } from '@/api/types/gerneral';
 import { NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { useToastHelper } from '@/api/utils/toast';
-import { Badge, Button, ButtonGroup, Menu, Tree, TreeExpandedKeys, TreeSelectionKeys } from 'primevue';
-import { MenuItem } from 'primevue/menuitem';
+import { Badge, Button, ButtonGroup, Tree, TreeExpandedKeys, TreeSelectionKeys } from 'primevue';
 import { TreeNode } from 'primevue/treenode';
 import { computed, ref } from 'vue';
 
@@ -23,6 +22,9 @@ const emit = defineEmits<{
 const selectedNode = ref<TreeSelectionKeys>({});
 const expandedKeys = ref<TreeExpandedKeys>({});
 const menuNoteId = ref<NoteId>();
+const currentMenuNode = ref<NoteTreeNode | null>(null);
+const menuPosition = ref({ x: 0, y: 0 });
+const menuVisible = ref(false);
 const createTypeDisplay = ref<boolean>(false); // 是否显示创建类型选择
 let createTypeTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -33,43 +35,72 @@ const dragPosition = ref<'top' | 'middle' | 'bottom'>('middle');
 
 const toast = useToastHelper()
 
-const noteMenuItems: MenuItem[] = [
+// 菜单项配置
+const menuItems = [
   {
-    label: 'Close',
-    items: [
-      {
-        label: 'Export',
-        icon: 'pi pi-upload',
-        command: (event) => {
-          // @todo to implement
-          event.originalEvent.stopPropagation();
-          console.log('Export Note');
-          toast.info('Export Note feature is not implemented yet.');
-        }
-      },
-      {
-        label: 'Rename',
-        icon: 'pi pi-pencil',
-        command: (event) => {
-          // @todo to implement
-          event.originalEvent.stopPropagation();
-          toast.info('Rename Note feature is not implemented yet.');
-        }
-      },
-      {
-        label: 'Delete',
-        icon: 'pi pi-trash',
-        // style: { color: 'red' },
-        command: (event) => {
-          // @todo to implement
-          event.originalEvent.stopPropagation();
-          emit('deleteNote', menuNoteId.value!);
-        }
-      },
-
-    ]
+    label: 'Export',
+    icon: 'pi pi-upload',
+    action: () => {
+      toast.info('Export Note feature is not implemented yet.');
+      closeMenu();
+    }
+  },
+  {
+    label: 'Rename',
+    icon: 'pi pi-pencil',
+    action: () => {
+      toast.info('Rename Note feature is not implemented yet.');
+      closeMenu();
+    }
+  },
+  {
+    label: 'Delete',
+    icon: 'pi pi-trash',
+    action: () => {
+      if (currentMenuNode.value) {
+        emit('deleteNote', currentMenuNode.value.key as string);
+      }
+      closeMenu();
+    }
   }
-]
+];
+
+// 显示菜单
+const showMenu = (event: MouseEvent, node: NoteTreeNode) => {
+  event.stopPropagation();
+  
+  const buttonRect = (event.target as HTMLElement).getBoundingClientRect();
+  
+  menuPosition.value = {
+    x: buttonRect.right + 8, // 按钮右侧 8px
+    y: buttonRect.top
+  };
+  
+  currentMenuNode.value = node;
+  menuNoteId.value = node.key as NoteId;
+  menuVisible.value = true;
+  
+  // 添加点击外部关闭菜单的监听
+  setTimeout(() => {
+    document.addEventListener('click', handleClickOutside);
+  }, 0);
+};
+
+// 关闭菜单
+const closeMenu = () => {
+  menuVisible.value = false;
+  menuNoteId.value = undefined;
+  currentMenuNode.value = null;
+  document.removeEventListener('click', handleClickOutside);
+};
+
+// 点击外部关闭菜单
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.note-menu') && !target.closest('.menu-button')) {
+    closeMenu();
+  }
+};
 
 const processNodes = (nodes: NoteTreeNode[]): number => {
   let folderCount = 0;
@@ -301,20 +332,30 @@ console.log(expendedNum)
         <span class="text-secondary flex-1">{{ node.label }}</span>
         <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary"
           :value='node.children?.length || 0' />
-        <Button class="size-6! text-xs! ml-2" severity="secondary" rounded outlined
-          :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'" @click.stop="() => {
+        <Button class="size-6! text-xs! ml-2 menu-button" severity="secondary" rounded outlined
+          :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'" 
+          @click="(event) => {
             if (menuNoteId === node.key) {
-              menuNoteId = undefined;
+              closeMenu();
             } else {
-              menuNoteId = node.key;
+              showMenu(event, node as NoteTreeNode);
             }
           }" />
-        <Menu v-if="!(draggedNode && draggedNode.key === node.key)"
-          :class="(menuNoteId === node.key ? 'h-40' : 'h-0! border-0!') + ' overflow-hidden absolute z-10 transition-all duration-300'"
-          :model="noteMenuItems" @blur="menuNoteId = undefined" append-to="body" />
       </div>
     </template>
   </Tree>
+  
+  <!-- 自定义菜单 -->
+  <div v-if="menuVisible" 
+       class="note-menu fixed z-50 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-32"
+       :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }">
+    <div v-for="item in menuItems" :key="item.label"
+         class="menu-item flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
+         @click="item.action">
+      <i :class="item.icon" class="text-xs"></i>
+      <span>{{ item.label }}</span>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -343,5 +384,33 @@ console.log(expendedNum)
 /* 拖拽时降低透明度 */
 .dragging {
   opacity: 0.5;
+}
+
+/* 菜单样式 */
+.note-menu {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.note-menu .menu-item:hover {
+  background-color: #f3f4f6;
+}
+
+.note-menu .menu-item:last-child {
+  color: #dc2626; /* 删除按钮红色 */
+}
+
+.note-menu .menu-item:last-child:hover {
+  background-color: #fef2f2;
 }
 </style>
