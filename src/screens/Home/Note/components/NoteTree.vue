@@ -3,9 +3,9 @@ import { NoteId } from '@/api/types/gerneral';
 import { NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { useToastHelper } from '@/api/utils/toast';
 import { noteTreeTool } from '@/api/utils/noteTree';
-import { Badge, Button, ButtonGroup, Tree, TreeExpandedKeys, TreeSelectionKeys } from 'primevue';
+import { Badge, Button, ButtonGroup, InputText, Tree, TreeExpandedKeys, TreeSelectionKeys } from 'primevue';
 import { TreeNode } from 'primevue/treenode';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 
 const { noteTreeNodes = [] } = defineProps<{ noteTreeNodes: NoteTreeNode[] }>();
 // const { noteTreeNodes } = withDefaults(defineProps<{
@@ -18,6 +18,7 @@ const emit = defineEmits<{
   (e: 'create', type: NoteTreeType): void;
   (e: 'deleteNote', noteId: string): void;
   (e: 'moveNode', data: { nodeId: string, targetParentId: string | null, targetIndex: number }): void;
+  (e: 'renameNode', data: { nodeId: string, newName: string }): void;
   (e: 'select', node: TreeNode): void;
 }>();
 
@@ -27,6 +28,11 @@ const menuNoteId = ref<NoteId>();
 const currentMenuNode = ref<NoteTreeNode | null>(null);
 const menuPosition = ref({ x: 0, y: 0 });
 const menuVisible = ref(false);
+
+// 内联重命名相关状态
+const inlineEditingNodeId = ref<string | null>(null);
+const inlineEditValue = ref('');
+
 const createTypeDisplay = ref<boolean>(false); // 是否显示创建类型选择
 let createTypeTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -51,8 +57,9 @@ const menuItems = [
     label: 'Rename',
     icon: 'pi pi-pencil',
     action: () => {
-      toast.info('Rename Note feature is not implemented yet. Please use right panel.');
-      closeMenu();
+      if (currentMenuNode.value) {
+        startInlineEdit(currentMenuNode.value);
+      }
     }
   },
   {
@@ -167,6 +174,55 @@ function handleFileClick() {
   createTypeDisplay.value = false;
   emit('create', 'note')
 }
+
+// 开始内联编辑
+const startInlineEdit = (node: NoteTreeNode) => {
+  inlineEditingNodeId.value = node.key as string;
+  inlineEditValue.value = node.label as string;
+  closeMenu();
+
+  //! autofocus 似乎不生效（
+  nextTick(() => {
+    const inputElement = document.querySelector<HTMLInputElement>('.p-inputtext');
+    if (inputElement) {
+      inputElement.focus();
+      inputElement.select(); // 选中输入框内容
+    }
+  });
+};
+
+// 确认内联编辑
+const confirmInlineEdit = () => {
+  if (!inlineEditingNodeId.value || !inlineEditValue.value.trim()) {
+    toast.error('请输入有效的名称');
+    return;
+  }
+
+  // 调用父组件的重命名方法
+  emit('renameNode', {
+    nodeId: inlineEditingNodeId.value,
+    newName: inlineEditValue.value.trim()
+  });
+
+  cancelInlineEdit();
+};
+
+// 取消内联编辑
+const cancelInlineEdit = () => {
+  inlineEditingNodeId.value = null;
+  inlineEditValue.value = '';
+};
+
+// 处理内联编辑的键盘事件
+const handleInlineEditKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    confirmInlineEdit();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    cancelInlineEdit();
+  }
+};
 
 // 拖拽处理函数
 const handleDragStart = (event: DragEvent, node: NoteTreeNode) => {
@@ -296,23 +352,33 @@ console.log(expendedNum)
         class="text-secondary"></i>
     </template>
     <template #default="{ node }">
-      <div class="flex items-center w-full relative" :class="getDragClass(node as NoteTreeNode)" draggable="true"
-        @dragstart="(event) => handleDragStart(event, node as NoteTreeNode)"
-        @dragover="(event) => handleDragOver(event, node as NoteTreeNode)" @dragleave="handleDragLeave"
-        @drop="(event) => handleDrop(event, node as NoteTreeNode)">
-        <span class="text-secondary flex-1">{{ node.label }}</span>
-        <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary"
-          :value='node.children?.length || 0' />
+      <div class="flex items-center w-full relative"
+           :class="getDragClass(node as NoteTreeNode)"
+           :data-node-id="node.key"
+           draggable="true"
+           @dragstart="(event) => handleDragStart(event, node as NoteTreeNode)"
+           @dragover="(event) => handleDragOver(event, node as NoteTreeNode)"
+           @dragleave="handleDragLeave"
+           @drop="(event) => handleDrop(event, node as NoteTreeNode)">
+
+        <!-- 普通显示状态 -->
+        <span v-if="inlineEditingNodeId !== node.key"
+              class="text-secondary flex-1">{{ node.label }}</span>
+
+        <!-- 内联编辑状态 -->
+        <InputText v-else v-model="inlineEditValue" class="w-full! p-0! flex-1 text-sm" size="small" :class="{ 'p-invalid': !inlineEditValue.trim() }" @click.stop @keydown="handleInlineEditKeydown" @blur="cancelInlineEdit" autofocus/>
+
+        <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary" :value='node.children?.length || 0' />
         <Button class="size-6! text-xs! ml-2 menu-button" severity="secondary" rounded outlined
-          :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'"
-          @click.stop="(event) => {
-            event.stopPropagation
-            if (menuNoteId === node.key) {
-              closeMenu();
-            } else {
-              showMenu(event, node as NoteTreeNode);
-            }
-          }" />
+                :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'"
+                @click.stop="(event) => {
+                  event.stopPropagation
+                  if (menuNoteId === node.key) {
+                    closeMenu();
+                  } else {
+                    showMenu(event, node as NoteTreeNode);
+                  }
+                }" />
       </div>
     </template>
   </Tree>

@@ -213,4 +213,24 @@ export const noteTreeTool = {
 
 		return noteIds;
 	},
+
+	/**
+	 * 更新节点数据
+	 * @param nodes 节点数组
+	 * @param nodeId 要更新的节点ID
+	 * @param updater 更新函数，接收当前节点并返回更新后的节点数据
+	 * @returns 更新后的节点数组
+	 */
+	updateNode(nodes: NoteTreeNode[], nodeId: string, updater: (node: NoteTreeNode) => Partial<NoteTreeNode>): NoteTreeNode[] {
+		return nodes.map(node => {
+			if (node.key === nodeId) {
+				const updates = updater(node);
+				return { ...node, ...updates };
+			}
+			if (node.children && node.children.length > 0) {
+				return { ...node, children: this.updateNode(node.children, nodeId, updater) };
+			}
+			return node;
+		});
+	},
 }

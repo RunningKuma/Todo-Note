@@ -12,6 +12,7 @@ import { createEmptyNoteMeta } from '@/api/utils/note';
 import { noteTreeTool } from '@/api/utils/noteTree';
 import NoteMeta from './components/NoteMeta.vue';
 import { TreeNode } from 'primevue/treenode';
+import { testNote } from '@/api/constants/test';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -308,7 +309,7 @@ function handleNoteSelect(node: TreeNode) {
   if (node.type === 'note') {
     noteOps.getNote(node.key).then((res) => {
       if (res.success) {
-        note.value = res.data;
+        note.value = res.data!;
         noteId.value = node.key;
         noteDiffEngine.setContent(note.value!.content);
       } else {
@@ -319,11 +320,38 @@ function handleNoteSelect(node: TreeNode) {
     });
   }
 }
+function handleRenameNode(data: { nodeId: string, newName: string }) {
+  const { nodeId, newName } = data;
+  const node = noteTreeTool.findNodeByKey(noteTreeNodes.value, nodeId);
+  if (node) {
+    if (node.type === 'folder') {
+      node.label = newName;
+      handleUpdateNoteTree();
+    }
+    else if( node.type === 'note') {
+      // 更新笔记标题
+      noteOps.updateNote({meta:{...note.value!.meta, title: newName},content:note.value!.content}).then((res) => {
+        if (res.success) {
+          note.value!.meta.title = newName;
+          noteTreeNodes.value = noteTreeTool.updateNode(noteTreeNodes.value, nodeId, () => ({ label: newName }));
+          handleUpdateNoteTree();
+        } else {
+          toast.error(res.message ?? '更新笔记标题失败');
+        }
+      }).catch((error) => {
+        console.error('Failed to update note meta:', error);
+      });
+    }
+    toast.success(`重命名为 "${newName}" 成功`);
+  } else {
+    toast.error('未找到要重命名的节点');
+  }
+}
 </script>
 <template>
   <div class="h-full flex overflow-hidden">
     <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create="handleCreate"
-      @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect" />
+      @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect" @rename-node="handleRenameNode" />
     <div class="h- flex-1">
       <!-- @todo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions" />
