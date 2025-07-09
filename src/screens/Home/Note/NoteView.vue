@@ -5,10 +5,13 @@ import NoteTree from './components/NoteTree.vue';
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { noteDiffEngine } from '@/api/note/diffEngine';
 import 'vditor/dist/index.css';
-import { Note, NoteTreeNode } from '@/api/types/note';
+import { Note, NoteMeta as NoteMetaType, NoteTreeNode } from '@/api/types/note';
 import { testNote, testTreeData } from '@/api/constants/test';
-import NoteMeta from './components/NoteMeta.vue';
 import { TreeNode } from 'primevue/treenode';
+import { noteOps } from '@/api/note/note';
+import { useToastHelper } from '@/api/utils/toast';
+import { createEmptyNoteMeta } from '@/api/utils/note';
+import NoteMeta from './components/NoteMeta.vue';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -45,9 +48,26 @@ const actions: PageHeaderAction[] = [
   }
 ]
 const vditorElement = ref<HTMLDivElement | undefined>();
+const toast = useToastHelper()
+
+
 const noteId = ref('demo-note-001');
 const note = ref<Note>(testNote);
 const noteTreeNodes = ref<NoteTreeNode[]>(testTreeData)
+
+function updateNoteTree() {
+  noteOps.getNoteTree().then((res) => {
+    if (res.success) {
+      noteTreeNodes.value = res.data!;
+    } else {
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to fetch note tree:', error);
+  })
+}
+updateNoteTree();
+
 watch(
   () => noteId.value,
   async (newId) => {
@@ -61,6 +81,12 @@ watch(
   },
   { immediate: true }
 );
+watch(
+  () => note.value.meta.title,
+  async () => {
+    updateNoteTree()
+  }
+)
 
 onMounted(async () => {
   if (vditorElement.value) {
@@ -76,12 +102,43 @@ onMounted(async () => {
 onUnmounted(() => {
   noteDiffEngine.destroy();
 });
+
+function handleNoteTreeRefresh() {
+  noteOps.getNoteTree().then((res) => {
+    if (res.success) {
+      noteTreeNodes.value = res.data!;
+      toast.success('笔记目录刷新成功');
+    } else {
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to fetch note tree:', error);
+  });
+}
+function handleCreateNote() {
+  const newNoteMeta: NoteMetaType = createEmptyNoteMeta()
+  noteOps.createNote(newNoteMeta).then((res) => {
+    if (res.success) {
+      noteTreeNodes.value.push({
+        key: newNoteMeta.id,
+        label: newNoteMeta.title,
+        type: 'note',
+      } as NoteTreeNode);
+      toast.success('新建笔记成功');
+    } else {
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to create note:', error);
+  });
+}
 // const noteNode =
 </script>
 <template>
   <div class="h-full flex overflow-hidden">
-    <NoteTree :note-tree-nodes="noteTreeNodes" />
+    <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create-note="handleCreateNote" />
     <div class="h- flex-1">
+      <!-- @todo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="note.meta.title" title="Note" :actions="actions" />
       <NoteMeta v-model="note.meta" class="px-6 pb-1" />
       <div ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>
