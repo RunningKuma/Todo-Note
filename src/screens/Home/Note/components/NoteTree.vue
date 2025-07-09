@@ -51,7 +51,7 @@ const menuItems = [
     label: 'Rename',
     icon: 'pi pi-pencil',
     action: () => {
-      toast.info('Rename Note feature is not implemented yet.');
+      toast.info('Rename Note feature is not implemented yet. Please use right panel.');
       closeMenu();
     }
   },
