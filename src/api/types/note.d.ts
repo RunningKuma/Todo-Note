@@ -10,6 +10,9 @@ export type NoteMeta = {
 }
 export type NoteContent = string
 
+export type UpdateNoteMeta = Pick<NoteMeta, 'id'> & Partial<NoteMeta>
+export type UpdateNote = { meta: UpdateNoteMeta, content?: NoteContent }
+
 export type Note = {
   meta: NoteMeta,
   content: NoteContent

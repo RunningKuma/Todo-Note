@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import type { Note, NoteMeta, NoteTreeNode } from '../types/note';
+import type { Note, NoteMeta, NoteTreeNode, UpdateNote, UpdateNoteMeta } from '../types/note';
 import { request } from '../utils/request';
 import { ApiResponse } from '../types/request';
 import { NoteId } from '../types/gerneral';
@@ -87,7 +87,7 @@ export const noteOps = {
   /**
    * 更新笔记
    */
-  updateNote: async (note: Note): Promise<ApiResponse<{ success: boolean }>> => {
+  updateNote: async (note: UpdateNoteMeta): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await request.put(`/notes`, { data: note })
       .catch(res => {
         console.error('更新笔记失败:', res);
