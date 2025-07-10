@@ -32,44 +32,43 @@ export class NoteDiffEngine {
   private versions: Map<string, NoteVersion[]> = new Map();
   private autoSaveEnabled = true;
   private autoSaveDelay = 2000; // 2秒自动保存
-  private dbInitialized = false;
+  // private dbInitialized = false;
   private toast: ReturnType<typeof useToastHelper> | null = null;
 
-  constructor() {
-    this.initDB();
-  }
+  // constructor() {
+  //   this.initDB();
+  // }
 
-  /**
-   * 初始化 IndexedDB
-   */
-  private async initDB(): Promise<void> {
-    try {
-      await indexedDBManager.init();
-      this.dbInitialized = true;
-      console.log('IndexedDB 初始化成功');
-    } catch (error) {
-      console.error('IndexedDB 初始化失败:', error);
-      this.dbInitialized = false;
-    }
-  }
+  // /**
+  //  * 初始化 IndexedDB
+  //  */
+  // private async initDB(): Promise<void> {
+  //   try {
+  //     await indexedDBManager.init();
+  //     this.dbInitialized = true;
+  //     console.log('IndexedDB 初始化成功');
+  //   } catch (error) {
+  //     console.error('IndexedDB 初始化失败:', error);
+  //     this.dbInitialized = false;
+  //   }
+  // }
 
-  /**
-   * 确保数据库已初始化
-   */
-  private async ensureDBInitialized(): Promise<void> {
-    if (!this.dbInitialized) {
-      await this.initDB();
-    }
-  }
+  // /**
+  //  * 确保数据库已初始化
+  //  */
+  // private async ensureDBInitialized(): Promise<void> {
+  //   if (!this.dbInitialized) {
+  //     await this.initDB();
+  //   }
+  // }
 
   /**
    * 获取 init 状态
    */
   get isInitialized(): boolean {
     return this.vditor !== undefined &&
-      this.vditor.vditor !== undefined &&
-      this.vditor.vditor.ir !== undefined &&
-      this.dbInitialized;
+      this.vditor.vditor !== undefined
+      // this.dbInitialized;
   }
   /**
    * 初始化 Vditor 编辑器

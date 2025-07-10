@@ -102,31 +102,33 @@ watch(
     // versions.value = await noteDiffEngine.getAllVersions(newId);
     // diffHtml.value = '';
     // selectedVersions.value = [];
+    if (!newId) return
     noteDiffEngine.updateNoteId(newId);
     if (!note.value ||!noteDiffEngine.isInitialized) return
     noteDiffEngine.setContent(note.value.content);
   },
   { immediate: true }
 );
-watch(
-  () => note.value,
-  async () => {
-    updateNoteTree()
-    noteOps.updateNote(note.value!).then((res) => {
-      if (res.success) {
-        toast.success('笔记更新成功');
-      } else {
-        toast.error(res.message ?? '未知错误');
-      }
-    }).catch((error) => {
-      console.error('Failed to update note:', error);
-      toast.error('更新笔记失败');
-    });
-  }
-)
+// watch(
+//   () => note.value,
+//   async () => {
+//     updateNoteTree()
+//     noteOps.updateNote(note.value!).then((res) => {
+//       if (res.success) {
+//         toast.success('笔记更新成功');
+//       } else {
+//         toast.error(res.message ?? '未知错误');
+//       }
+//     }).catch((error) => {
+//       console.error('Failed to update note:', error);
+//       toast.error('更新笔记失败');
+//     });
+//   }
+// )
 watch(
   () => noteMetaProxy,
   async () => {
+    if (!note.value) return
     _updateNode({
       meta: noteMetaProxy.value,
     });

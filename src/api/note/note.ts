@@ -88,7 +88,7 @@ export const noteOps = {
    * 更新笔记
    */
   updateNote: async (note: UpdateNote): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await request.put(`/notes`, { data: note })
+    const response = await request.put(`/notes`, note)
       .catch(res => {
         console.error('更新笔记失败:', res);
         return { success: false, ...res.response } as AxiosResponse;
