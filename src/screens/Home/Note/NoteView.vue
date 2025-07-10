@@ -330,11 +330,12 @@ function handleRenameNode(data: { nodeId: string, newName: string }) {
     }
     else if( node.type === 'note') {
       // 更新笔记标题
-      noteOps.updateNote({meta:{...note.value!.meta, title: newName},content:note.value!.content}).then((res) => {
+      noteOps.updateNote({ meta: { id: nodeId, title: newName } }).then((res) => {
         if (res.success) {
           note.value!.meta.title = newName;
           noteTreeNodes.value = noteTreeTool.updateNode(noteTreeNodes.value, nodeId, () => ({ label: newName }));
           handleUpdateNoteTree();
+          toast.success(`重命名为 "${newName}" 成功`);
         } else {
           toast.error(res.message ?? '更新笔记标题失败');
         }
@@ -342,7 +343,6 @@ function handleRenameNode(data: { nodeId: string, newName: string }) {
         console.error('Failed to update note meta:', error);
       });
     }
-    toast.success(`重命名为 "${newName}" 成功`);
   } else {
     toast.error('未找到要重命名的节点');
   }
