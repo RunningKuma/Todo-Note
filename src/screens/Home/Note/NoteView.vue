@@ -53,10 +53,17 @@ const toast = useToastHelper();
 const confirm = useConfirm();
 
 
-const noteId = ref('demo-note-001');
 const note = ref<Note>();
 const noteTreeNodes = ref<NoteTreeNode[]>([])
 
+const noteId = computed({
+  get: () => note.value?.meta.id || '',
+  set: (value: string) => {
+    if (note.value) {
+      note.value.meta.id = value;
+    }
+  }
+});
 // 创建计算属性来处理 v-model 绑定
 const noteTitle = computed({
   get: () => note.value?.meta.title || '',
@@ -109,13 +116,13 @@ watch(
 )
 
 onMounted(async () => {
-  if (note.value&&vditorElement.value) {
+  if (vditorElement.value) {
     await noteDiffEngine.initVditor(vditorElement.value, {
       height: '100%',
       placeholder: 'Start Typing Here...',
     });
     noteDiffEngine.setAutoSave(true, 2 * 60 * 1000);
-    noteDiffEngine.setContent(note.value.content);
+    // noteDiffEngine.setContent(note.value.content);
   }
 });
 
@@ -351,15 +358,17 @@ function handleRenameNode(data: { nodeId: string, newName: string }) {
 <template>
   <div class="h-full flex overflow-hidden">
     <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create="handleCreate"
-      @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect" @rename-node="handleRenameNode" />
+      @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect"
+      @rename-node="handleRenameNode" />
     <div class="h- flex-1">
       <!-- @todo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions" />
       <NoteMeta v-if="note" v-model="noteMetaProxy" class="px-6 pb-1" />
-      <div v-if="note" ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>
       <div v-else class="flex items-center justify-center h-full">
         <p class="text-gray-500">请选择一个笔记查看内容</p>
       </div>
+      <div ref="vditorElement"
+        :class="(note ? '' : 'hidden') + 'h-full border-2 border-gray-200 rounded-2xl flex flex-col'"></div>
     </div>
   </div>
 </template>
