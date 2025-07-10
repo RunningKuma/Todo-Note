@@ -136,8 +136,6 @@ export const TodoModel = {
         [...updateValues, todo.info.id]
       );
 
-
-
       if (!res) {
         throw new Error('Todo not found after update');
       }
@@ -175,7 +173,7 @@ export const TodoModel = {
       const newStatus: TodoStatus['completed'] = complete ? 'completed' : 'not-started';
       // @ts-expect-error part of TodoInfo
       const response = await this.update({ info: { id }, status: { completed: newStatus } });
-      return response > 0 ? true : false
+      return response > 0 ? true : false;
     } catch (error) {
       console.error('Error toggling todo completion:', error);
       throw error;

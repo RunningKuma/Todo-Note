@@ -197,7 +197,7 @@ class DatabaseService {
         if (err) {
           reject(err);
         } else {
-          resolve(this.lastID);
+          resolve(1); // 返回受影响的行数
         }
       });
     });

@@ -209,6 +209,8 @@ export class NoteController {
         success
       });
     } catch (error) {
+
+      
       console.error('Error deleting note:', error);
       res.status(500).json({
         success: false,
