@@ -2,6 +2,9 @@ import Vditor from 'vditor';
 import diff from 'fast-diff';
 import { throttle } from '../utils/perform';
 import { indexedDBManager } from '../utils/indexedDB';
+import { noteOps } from './note';
+import { ApiResponse } from '../types/request';
+import { useToastHelper } from '../utils/toast';
 
 export interface NoteDiff {
   type: 'equal' | 'delete' | 'insert';
@@ -30,6 +33,7 @@ export class NoteDiffEngine {
   private autoSaveEnabled = true;
   private autoSaveDelay = 2000; // 2秒自动保存
   private dbInitialized = false;
+  private toast: ReturnType<typeof useToastHelper> | null = null;
 
   constructor() {
     this.initDB();
@@ -70,8 +74,9 @@ export class NoteDiffEngine {
   /**
    * 初始化 Vditor 编辑器
    */
-  async initVditor(element: HTMLElement, options?: IOptions): Promise<Vditor> {
+  async initVditor(element: HTMLElement, toast: ReturnType<typeof useToastHelper>, options?: IOptions): Promise<Vditor> {
     return new Promise((resolve) => {
+      this.toast = toast
       this.vditor = new Vditor(element, {
         mode: 'ir',
         height: 400,
@@ -91,7 +96,7 @@ export class NoteDiffEngine {
           // 失去焦点时手动保存一次
           // @todo use real user
           try {
-            await this.saveVersion(this.noteId || '', value, '当前用户');
+            await this.saveVersion(this.noteId || '', value);
           } catch (error) {
             console.error('保存失败:', error);
           }
@@ -116,9 +121,12 @@ export class NoteDiffEngine {
     const currentNoteId = this.noteId;
 
     try {
-      const saved = await this.saveVersion(currentNoteId, content, '当前用户');
-      if (saved) {
+      const res = await this.saveVersion(currentNoteId, content);
+      if (res.success) {
         console.log('自动保存版本成功');
+        return res;
+      } else {
+        this.toast!.error(res.message || '保存笔记失败');
       }
     } catch (error) {
       console.error('自动保存失败:', error);
@@ -169,94 +177,106 @@ export class NoteDiffEngine {
   /**
    * 保存笔记版本 - 只保存与前一版本的差异
    */
-  async saveVersion(noteId: string, content: string, author?: string): Promise<boolean> {
-    try {
-      await this.ensureDBInitialized();
-    } catch (error) {
-      console.error('数据库初始化失败，使用内存存储:', error);
-    }
+  async saveVersion(noteId: string, content: string): Promise<ApiResponse<{ success: boolean }>> {
+    //! 旧的本地优先的保存策略
+    // try {
+    //   await this.ensureDBInitialized();
+    // } catch (error) {
+    //   console.error('数据库初始化失败，使用内存存储:', error);
+    // }
 
-    // 从数据库加载现有版本（如果内存中没有）
-    if (!this.versions.has(noteId) && this.dbInitialized) {
-      try {
-        const dbVersions = await indexedDBManager.getNoteVersions(noteId);
-        this.versions.set(noteId, dbVersions);
-      } catch (error) {
-        console.error('从数据库加载版本失败:', error);
-        this.versions.set(noteId, []);
-      }
-    } else if (!this.versions.has(noteId)) {
-      this.versions.set(noteId, []);
-    }
+    // // 从数据库加载现有版本（如果内存中没有）
+    // if (!this.versions.has(noteId) && this.dbInitialized) {
+    //   try {
+    //     const dbVersions = await indexedDBManager.getNoteVersions(noteId);
+    //     this.versions.set(noteId, dbVersions);
+    //   } catch (error) {
+    //     console.error('从数据库加载版本失败:', error);
+    //     this.versions.set(noteId, []);
+    //   }
+    // } else if (!this.versions.has(noteId)) {
+    //   this.versions.set(noteId, []);
+    // }
 
-    const versions = this.versions.get(noteId)!;
+    // const versions = this.versions.get(noteId)!;
 
-    // 如果是第一个版本，直接保存完整内容
-    if (versions.length === 0) {
-      const firstVersion: NoteVersion = {
-        id: this.generateVersionId(),
-        content,
-        timestamp: Date.now(),
-        author
-      };
-      versions.push(firstVersion);
+    // // 如果是第一个版本，直接保存完整内容
+    // if (versions.length === 0) {
+    //   const firstVersion: NoteVersion = {
+    //     id: this.generateVersionId(),
+    //     content,
+    //     timestamp: Date.now(),
+    //     author
+    //   };
+    //   versions.push(firstVersion);
 
-      // 保存到数据库
-      if (this.dbInitialized) {
-        try {
-          await indexedDBManager.addVersionToNote(noteId, firstVersion);
-        } catch (error) {
-          console.error('保存版本到数据库失败:', error);
-        }
-      }
-
-      return true;
-    }
+    //   // 保存到数据库
+    //   if (this.dbInitialized) {
+    //     try {
+    //       await indexedDBManager.addVersionToNote(noteId, firstVersion);
+    //     } catch (error) {
+    //       console.error('保存版本到数据库失败:', error);
+    //     }
+    //   }
 
     // 获取最新版本的内容
-    const latestVersion = versions[versions.length - 1];
-    const latestContent = await this.getVersionContent(noteId, latestVersion.id);
+    // const latestVersion = versions[versions.length - 1];
+    // const latestContent = await this.getVersionContent(noteId, latestVersion.id);
 
-    if (!latestContent) {
-      throw new Error('无法获取最新版本内容');
-    }
+    // if (!latestContent) {
+    //   throw new Error('无法获取最新版本内容');
+    // }
 
-    // 计算差异
-    const diffs = this.calculateDiff(latestContent, content);
+    // // 计算差异
+    // const diffs = this.calculateDiff(latestContent, content);
 
-    // 检查是否有实际差异（忽略纯空白字符的变化）
-    const hasSignificantDiff = diffs.some(diff =>
-      diff.type !== 'equal' && diff.text.trim() !== ''
-    );
+    // // 检查是否有实际差异（忽略纯空白字符的变化）
+    // const hasSignificantDiff = diffs.some(diff =>
+    //   diff.type !== 'equal' && diff.text.trim() !== ''
+    // );
 
-    // 如果没有显著差异，不保存新版本
-    if (!hasSignificantDiff) {
-      console.log('内容无显著变化，跳过版本保存');
-      return false;
-    }
+    // // 如果没有显著差异，不保存新版本
+    // if (!hasSignificantDiff) {
+    //   console.log('内容无显著变化，跳过版本保存');
+    //   return false;
+    // }
 
-    // 保存差异版本
-    const newVersion: NoteVersion = {
-      id: this.generateVersionId(),
-      diffs,
-      timestamp: Date.now(),
-      author,
-      baseVersionId: latestVersion.id
-    };
+    // // 保存差异版本
+    // const newVersion: NoteVersion = {
+    //   id: this.generateVersionId(),
+    //   diffs,
+    //   timestamp: Date.now(),
+    //   author,
+    //   baseVersionId: latestVersion.id
+    // };
 
-    versions.push(newVersion);
+    // versions.push(newVersion);
 
-    // 保存到数据库
-    if (this.dbInitialized) {
-      try {
-        await indexedDBManager.addVersionToNote(noteId, newVersion);
-      } catch (error) {
-        console.error('保存版本到数据库失败:', error);
+    // // 保存到数据库
+    // if (this.dbInitialized) {
+    //   try {
+    //     await indexedDBManager.addVersionToNote(noteId, newVersion);
+    //   } catch (error) {
+    //     console.error('保存版本到数据库失败:', error);
+    //   }
+    // }
+
+    // console.log(`保存版本差异: +${this.getDiffStats(diffs).additions} -${this.getDiffStats(diffs).deletions}`);
+    // return true;
+
+    return noteOps.updateNote({ meta: { id: noteId }, content: content }).then((res) => {
+      if (res.success) {
+        return res;
+      } else {
+        this.toast!.error(res.message || '保存笔记失败');
+        console.error('保存笔记失败:', res.message);
+        return res;
       }
-    }
-
-    console.log(`保存版本差异: +${this.getDiffStats(diffs).additions} -${this.getDiffStats(diffs).deletions}`);
-    return true;
+    }).catch((error) => {
+      this.toast!.error(error || '保存笔记失败');
+      console.error('保存笔记失败:', error);
+      return { success: false, message: error.message || '保存笔记失败' };
+    });
   }
 
   /**

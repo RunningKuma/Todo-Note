@@ -4,7 +4,7 @@ import NoteTree from './components/NoteTree.vue';
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { noteDiffEngine } from '@/api/note/diffEngine';
 import 'vditor/dist/index.css';
-import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType } from '@/api/types/note';
+import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType, UpdateNote } from '@/api/types/note';
 import { noteOps } from '@/api/note/note';
 import { useToastHelper } from '@/api/utils/toast';
 import { useConfirm } from 'primevue/useconfirm';
@@ -53,10 +53,17 @@ const toast = useToastHelper();
 const confirm = useConfirm();
 
 
-const noteId = ref('demo-note-001');
 const note = ref<Note>();
 const noteTreeNodes = ref<NoteTreeNode[]>([])
 
+const noteId = computed({
+  get: () => note.value?.meta.id || '',
+  set: (value: string) => {
+    if (note.value) {
+      note.value.meta.id = value;
+    }
+  }
+});
 // 创建计算属性来处理 v-model 绑定
 const noteTitle = computed({
   get: () => note.value?.meta.title || '',
@@ -102,20 +109,39 @@ watch(
   { immediate: true }
 );
 watch(
-  () => note.value?.meta.title,
+  () => note.value,
   async () => {
     updateNoteTree()
+    noteOps.updateNote(note.value!).then((res) => {
+      if (res.success) {
+        toast.success('笔记更新成功');
+      } else {
+        toast.error(res.message ?? '未知错误');
+      }
+    }).catch((error) => {
+      console.error('Failed to update note:', error);
+      toast.error('更新笔记失败');
+    });
   }
+)
+watch(
+  () => noteMetaProxy,
+  async () => {
+    _updateNode({
+      meta: noteMetaProxy.value,
+    });
+  },
+  { immediate: true }
 )
 
 onMounted(async () => {
-  if (note.value&&vditorElement.value) {
-    await noteDiffEngine.initVditor(vditorElement.value, {
+  if (vditorElement.value) {
+    await noteDiffEngine.initVditor(vditorElement.value, toast, {
       height: '100%',
       placeholder: 'Start Typing Here...',
     });
     noteDiffEngine.setAutoSave(true, 2 * 60 * 1000);
-    noteDiffEngine.setContent(note.value.content);
+    // noteDiffEngine.setContent(note.value.content);
   }
 });
 
@@ -304,14 +330,44 @@ function handleMoveNode(data: { nodeId: string, targetParentId: string | null, t
   // toast.success('节点移动成功');
 }
 
+function _updateNode(newNode: UpdateNote) {
+  noteOps.updateNote(newNode).then((res) => {
+    if (res.success) {
+      // 合并 meta 数据，保留现有数据并覆盖更新的字段
+      note.value!.meta = {
+        ...note.value!.meta,
+        ...newNode.meta,
+        // 确保 modified 时间更新
+        modified: new Date()
+      };
+      if (newNode.meta.title) {
+        noteTreeNodes.value = noteTreeTool.updateNode(noteTreeNodes.value, newNode.meta.id, () => ({ label: newNode.meta.title }));
+        handleUpdateNoteTree();
+      }
+      // 如果有内容更新，则更新内容
+      if (newNode.content) {
+        note.value!.content = newNode.content;
+        // 同步更新编辑器内容
+        if (noteDiffEngine.isInitialized) {
+          noteDiffEngine.setContent(newNode.content);
+        }
+      }
+    } else {
+      toast.error(res.message ?? '更新笔记标题失败');
+    }
+  }).catch((error) => {
+    console.error('Failed to update note meta:', error);
+  });
+}
+
 function handleNoteSelect(node: TreeNode) {
   console.log('Selected node:', node);
   if (node.type === 'note') {
     noteOps.getNote(node.key).then((res) => {
       if (res.success) {
         note.value = res.data!;
-        noteId.value = node.key;
-        noteDiffEngine.setContent(note.value!.content);
+        // noteId.value = node.key;
+        // noteDiffEngine.setContent(note.value!.content);
       } else {
         toast.error(res.message ?? '未知错误');
       }
@@ -330,36 +386,46 @@ function handleRenameNode(data: { nodeId: string, newName: string }) {
     }
     else if( node.type === 'note') {
       // 更新笔记标题
-      noteOps.updateNote({meta:{...note.value!.meta, title: newName},content:note.value!.content}).then((res) => {
-        if (res.success) {
-          note.value!.meta.title = newName;
-          noteTreeNodes.value = noteTreeTool.updateNode(noteTreeNodes.value, nodeId, () => ({ label: newName }));
-          handleUpdateNoteTree();
-        } else {
-          toast.error(res.message ?? '更新笔记标题失败');
-        }
-      }).catch((error) => {
-        console.error('Failed to update note meta:', error);
+      _updateNode({
+        meta: {
+          id: nodeId,
+          title: newName,
+          modified: new Date() // 更新修改时间
+        },
       });
     }
-    toast.success(`重命名为 "${newName}" 成功`);
   } else {
     toast.error('未找到要重命名的节点');
   }
 }
+function handlePageHeaderUpdateTitle() {
+  if (note.value) {
+    _updateNode({
+      meta: {
+        id: note.value.meta.id,
+        title: noteTitle.value,
+        modified: new Date() // 更新修改时间
+      },
+    });
+  }
+}
+
 </script>
 <template>
   <div class="h-full flex overflow-hidden">
     <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create="handleCreate"
-      @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect" @rename-node="handleRenameNode" />
+      @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect"
+      @rename-node="handleRenameNode" />
     <div class="h- flex-1">
       <!-- @todo title rename 后还需要更新树形结构艹…… -->
-      <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions" />
+      <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions"
+        @update-title="handlePageHeaderUpdateTitle" />
       <NoteMeta v-if="note" v-model="noteMetaProxy" class="px-6 pb-1" />
-      <div v-if="note" ref="vditorElement" class="h-ful border-2 border-gray-200 rounded-2xl"></div>
       <div v-else class="flex items-center justify-center h-full">
         <p class="text-gray-500">请选择一个笔记查看内容</p>
       </div>
+      <div ref="vditorElement"
+        :class="(note ? '' : 'hidden') + 'h-full border-2 border-gray-200 rounded-2xl flex flex-col'"></div>
     </div>
   </div>
 </template>

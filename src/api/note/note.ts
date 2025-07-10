@@ -87,7 +87,7 @@ export const noteOps = {
   /**
    * 更新笔记
    */
-  updateNote: async (note: UpdateNoteMeta): Promise<ApiResponse<{ success: boolean }>> => {
+  updateNote: async (note: UpdateNote): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await request.put(`/notes`, { data: note })
       .catch(res => {
         console.error('更新笔记失败:', res);
