@@ -50,7 +50,7 @@
           </label>
           <!-- @todo use multi select instead -->
           <!-- @todo bug: 无法正确显示 tags -->
-          <InputText id="tags" :v-model="tags" @value-change="handleTagsChange" placeholder="请输入标签，用逗号分隔（可选）"
+          <InputText id="tags" v-model="tags" @value-change="handleTagsChange" placeholder="请输入标签，用逗号分隔（可选）"
             class="w-full" />
         </div>
 
@@ -60,7 +60,7 @@
             笔记
           </label>
           <!-- @todo bug: formData 没有存入 note_link -->
-          <InputText id="note_link" :v-model="formData.info.note_link" placeholder="输入笔记的 id 或链接（可选）" class="w-full" />
+          <InputText id="note_link" v-model="formData.info.note_link" placeholder="输入笔记的 id 或链接（可选）" class="w-full" />
         </div>
 
         <!-- 操作按钮 -->
