@@ -32,7 +32,7 @@ export class TodoService {
   /**
    * 更新TODO
    */
-  async updateTodo(todo: TodoCreateData) {
+  async updateTodo(todo: Partial<TodoCreateData>) {
     return await TodoModel.update(todo);
   }
 
