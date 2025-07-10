@@ -49,7 +49,6 @@
             分类（使用中英文逗号分隔）
           </label>
           <!-- @todo use multi select instead -->
-          <!-- @todo bug: 无法正确显示 tags -->
           <InputText id="tags" v-model="tags" @value-change="handleTagsChange" placeholder="请输入标签，用逗号分隔（可选）"
             class="w-full" />
         </div>
@@ -59,8 +58,9 @@
           <label for="note_link" class="block text-sm font-medium text-gray-700 mb-1">
             笔记
           </label>
-          <!-- @todo bug: formData 没有存入 note_link -->
-          <InputText id="note_link" v-model="formData.info.note_link" placeholder="输入笔记的 id 或链接（可选）" class="w-full" />
+          <!-- <InputText id="note_link" v-model="formData.info.note_link" placeholder="输入" class="w-full" /> -->
+          <MultiSelect v-model="selectNotes" :options="noteFullList" optionLabel="title" display="chip"
+            placeholder="此 Todo 的相关笔记（可选）" filter :loading="isLoadingNotes" @change="handleSelectNoteChange" />
         </div>
 
         <!-- 操作按钮 -->
@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import {
   Button,
   InputText,
@@ -83,9 +83,13 @@ import {
   Dropdown,
   DatePicker,
   Dialog,
-  Rating
+  Rating,
+  MultiSelect
 } from 'primevue';
 import type { Todo } from '@/api/types/todo';
+import { NoteList, NoteTreeNode } from '@/api/types/note';
+import { noteOps } from '@/api/note/note';
+import { useToastHelper } from '@/api/utils/toast';
 
 
 // type FormData = Todo
@@ -109,6 +113,8 @@ const emit = defineEmits<{
   cancel: [];
 }>();
 
+const toast = useToastHelper();
+
 // 表单数据
 const formData = reactive<Todo>(todo);
 
@@ -118,6 +124,7 @@ const errors = reactive({
 });
 
 const loading = ref(false);
+const isLoadingNotes = ref(true);
 
 // 初始化表单数据
 // const initializeForm = () => {
@@ -136,6 +143,63 @@ function handleTagsChange(value: string | undefined) {
     .map(tag => tag.trim())
     .filter(tag => tag);
 }
+
+const noteFullList = ref<NoteList[]>([])
+const selectNotes = ref<NoteList[]>([])
+
+function handleSelectNoteChange() {
+  formData.info.note_link = JSON.stringify(selectNotes.value)
+  // console.log(formData.info.note_link)
+}
+
+// 初始化选中的笔记
+function initSelectedNotes() {
+  if (formData.info.note_link && noteFullList.value?.length) {
+    selectNotes.value = JSON.parse(formData.info.note_link)
+  }
+}
+//! 注意在初始值为零时也会调用，不要滥用！
+// watch(
+//   () => selectNotes.value,
+//   () => {
+//     formData.info.note_link = selectNotes.value?.map(noteList => noteList.id).join(',')
+//     // console.log(selectNotes.value)
+//   }, { immediate: true }
+// )
+// noteList.value = formData.info.note_link?.split(',').filter(l => l).map(link => { return { id } as NoteList })
+function _findNote(noteTree: NoteTreeNode[]) {
+  // 处理当前层级的笔记
+  const notes = noteTree.filter(node => node.type === 'note')
+    .map(tree => ({ id: tree.key, title: tree.label } as NoteList));
+
+  if (notes.length > 0 && noteFullList.value) {
+    noteFullList.value.push(...notes);
+  }
+
+  // 递归处理文件夹
+  for (const folder of noteTree.filter(node => node.type === 'folder')) {
+    if (folder.children && folder.children.length > 0) {
+      _findNote(folder.children);
+    }
+  }
+}
+isLoadingNotes.value = true;
+noteOps.getNoteTree().then((res) => {
+  if (res.success) {
+    // 初始化空数组
+    noteFullList.value = [];
+    // 使用递归函数查找所有笔记
+    _findNote(res.data || []);
+    // 初始化已选中的笔记
+    initSelectedNotes();
+  }
+  else {
+    toast.error('无法获取用户笔记列表');
+  }
+}).finally(() => {
+  isLoadingNotes.value = false;
+})
+
 // 表单验证
 const validateForm = () => {
   errors.title = '';
