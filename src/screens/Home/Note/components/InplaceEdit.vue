@@ -53,6 +53,15 @@ async function handleEditConfirm() {
 function handleCancel() {
   _editingValue.value = type === 'array' ? (value.value as string[]).join(', ') : value.value as Date | string;
 }
+// const handleInlineEditKeydown = (event: KeyboardEvent) => {
+//   if (event.key === 'Enter') {
+//     handleEditConfirm();
+//   } else if (event.key === 'Escape') {
+//     handleCancel();
+//   }
+// };
+// @keydown.prevent="handleInlineEditKeydown"
+
 </script>
 <template>
   <Inplace>

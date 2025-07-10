@@ -352,44 +352,42 @@ console.log(expendedNum)
         class="text-secondary"></i>
     </template>
     <template #default="{ node }">
-      <div class="flex items-center w-full relative"
-           :class="getDragClass(node as NoteTreeNode)"
-           :data-node-id="node.key"
-           draggable="true"
-           @dragstart="(event) => handleDragStart(event, node as NoteTreeNode)"
-           @dragover="(event) => handleDragOver(event, node as NoteTreeNode)"
-           @dragleave="handleDragLeave"
-           @drop="(event) => handleDrop(event, node as NoteTreeNode)">
+      <div class="flex items-center w-full relative" :class="getDragClass(node as NoteTreeNode)"
+        :data-node-id="node.key" :draggable="inlineEditingNodeId === null"
+        @dragstart="(event) => handleDragStart(event, node as NoteTreeNode)"
+        @dragover="(event) => handleDragOver(event, node as NoteTreeNode)" @dragleave="handleDragLeave"
+        @drop="(event) => handleDrop(event, node as NoteTreeNode)">
 
         <!-- 普通显示状态 -->
-        <span v-if="inlineEditingNodeId !== node.key"
-              class="text-secondary flex-1">{{ node.label }}</span>
+        <span v-if="inlineEditingNodeId !== node.key" class="text-secondary flex-1">{{ node.label }}</span>
 
         <!-- 内联编辑状态 -->
-        <InputText v-else v-model="inlineEditValue" class="w-full! p-0! flex-1 text-sm" size="small" :class="{ 'p-invalid': !inlineEditValue.trim() }" @click.stop @keydown="handleInlineEditKeydown" @blur="cancelInlineEdit" autofocus/>
+        <InputText v-else v-model="inlineEditValue" class="w-full! p-0! flex-1 text-sm" size="small"
+          :class="{ 'p-invalid': !inlineEditValue.trim() }" @click.stop @keydown="handleInlineEditKeydown"
+          @blur="cancelInlineEdit" autofocus />
 
-        <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary" :value='node.children?.length || 0' />
+        <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary"
+          :value='node.children?.length || 0' />
         <Button class="size-6! text-xs! ml-2 menu-button" severity="secondary" rounded outlined
-                :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'"
-                @click.stop="(event) => {
-                  event.stopPropagation
-                  if (menuNoteId === node.key) {
-                    closeMenu();
-                  } else {
-                    showMenu(event, node as NoteTreeNode);
-                  }
-                }" />
+          :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'" @click.stop="(event) => {
+            event.stopPropagation
+            if (menuNoteId === node.key) {
+              closeMenu();
+            } else {
+              showMenu(event, node as NoteTreeNode);
+            }
+          }" />
       </div>
     </template>
   </Tree>
 
   <!-- 自定义菜单 -->
   <div v-if="menuVisible"
-       class="note-menu fixed z-50 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-32"
-       :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }">
+    class="note-menu fixed z-50 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-32"
+    :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }">
     <div v-for="item in menuItems" :key="item.label"
-         class="menu-item flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
-         @click="item.action">
+      class="menu-item flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
+      @click="item.action">
       <i :class="item.icon" class="text-xs"></i>
       <span>{{ item.label }}</span>
     </div>
