@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { NoteController } from '../controllers/noteController';
 import { authenticateToken } from '../middleware/auth';
 
+
 const router = Router();
 const noteController = new NoteController();
 

@@ -100,9 +100,8 @@ export const NoteClass = {
    * 4. 创建新笔记
    * POST /
    */
-  async create(userId: UserId, noteMeta: Omit<NoteMeta, 'id' | 'create' | 'modified'>): Promise<boolean> {
+  async create(userId: UserId, noteMeta: Omit<NoteMeta, 'create' | 'modified'>): Promise<boolean> {
     try {
-      const noteId = crypto.randomUUID();
       const now = new Date().toISOString();
       const tagsJson = noteMeta.tags ? JSON.stringify(noteMeta.tags) : null;
       
@@ -110,7 +109,7 @@ export const NoteClass = {
         `INSERT INTO notes (id, user_id, title, content, tags, created_at, updated_at) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
-          noteId,
+          noteMeta.id, // 使用前端传递的id
           userId,
           noteMeta.title,
           '', // 创建时内容为空

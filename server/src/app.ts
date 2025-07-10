@@ -12,8 +12,13 @@ const app = express();
 app.use(json());
 app.use(urlencoded({ extended: true }));
 
-// Connect to the database
-db.connect();
+// Connect to the database and initialize
+db.connect().then(() => {
+  console.log('🚀 数据库初始化完成，服务器准备就绪');
+}).catch((error) => {
+  console.error('❌ 数据库初始化失败:', error);
+  process.exit(1);
+});
 // Routes
 app.use('/auth', authRoutes);
 app.use('/todos', todoRoutes);
