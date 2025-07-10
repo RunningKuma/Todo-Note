@@ -213,6 +213,23 @@ export const NoteClass = {
       console.error('Error finding notes by user ID:', error);
       throw error;
     }
+  },
+
+  /**
+   * 获取用户最近创建的笔记（按创建时间排序，最多10个）
+   */
+  async findRecentByUserId(userId: UserId, limit: number = 10): Promise<Note[]> {
+    try {
+      const notes = await db.query<NoteDbRow>(
+        'SELECT * FROM notes WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
+        [userId, limit]
+      );
+      
+      return notes.map(this.mapDbRowToNote);
+    } catch (error) {
+      console.error('Error finding recent notes by user ID:', error);
+      throw error;
+    }
   }
 };
 

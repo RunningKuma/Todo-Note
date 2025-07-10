@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "ts-node -r tsconfig-paths/register -r dotenv/config src/index.ts",
     "build": "tsc",
-    "_test": "jest",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:dev": "jest --watchAll",
+    "test:coverage": "jest --coverage",
+    "test:single": "jest -t",
+    "test:ci": "jest --ci"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +20,8 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "ts-jest": "^29.4.0"
   },
   "devDependencies": {
     "@types/bcrypt": "5.0.2",

@@ -1,5 +1,5 @@
-import { resolve, dirname } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { resolve } from 'path';
+import { existsSync } from 'fs';
 import sqlite3 from 'sqlite3';
 import { Database } from 'sqlite3';
 
@@ -38,7 +38,6 @@ class DatabaseService {
         password TEXT NOT NULL,
         note_structure TEXT
       )`);
-      console.log('✓ 用户表已创建');
 
       // 创建TODO表
       await this.run(`CREATE TABLE IF NOT EXISTS todos (
@@ -54,7 +53,6 @@ class DatabaseService {
         completed TEXT CHECK(completed IN ('completed', 'in-progress', 'not-started', 'pending')) DEFAULT 'not-started',
         FOREIGN KEY (user_id) REFERENCES users (id)
       )`);
-      console.log('✓ TODO表已创建');
 
       // 创建笔记表
       await this.run(`CREATE TABLE IF NOT EXISTS notes (
@@ -67,7 +65,6 @@ class DatabaseService {
         updated_at TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users (id)
       )`);
-      console.log('✓ 笔记表已创建');
 
       // 创建索引以提高查询性能
       await this.run('CREATE INDEX IF NOT EXISTS idx_todos_user_id ON todos(user_id)');
