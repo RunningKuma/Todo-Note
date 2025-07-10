@@ -22,7 +22,7 @@ const visible = ref(true);
 
 <template>
   <div :class="['container', visible ? 'ml-sidebar' : '']">
-    <SideBar v-model="visible" :username="userData?.info.username"></SideBar>
+    <SideBar v-model="visible" :username="userData?.info.username" :email="userData?.info.email"></SideBar>
     <div class="size-full p-4">
       <!-- <DrawerTrigger v-model="visible" /> -->
       <RouterView v-model="visible" />
