@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { NoteList } from '@/api/types/note';
 import { Todo } from '@/api/types/todo';
 import { handle } from '@primeuix/themes/aura/imagecompare';
 import { Button, Checkbox, Rating } from 'primevue';
 import { computed, ref } from 'vue';
+import NoteTag from './NoteTag.vue';
 
 const { todo } = defineProps<{ todo: Todo }>()
 
@@ -29,6 +31,8 @@ function handleDelete() {
     }, 2000);
   }
 }
+const noteDisplay = ref<NoteList[] | undefined>(JSON.parse(todo.info.note_link ?? '{}'))
+// console.log(noteDisplay.value)
 </script>
 
 <template>
@@ -47,6 +51,9 @@ function handleDelete() {
     <div v-if="todo.info.tags" class="">
       <i class="pi pi-tag align-middle"></i>
       <span class="ml-0.5">{{ todo.info.tags.join(', ') }}</span>
+    </div>
+    <div v-if="noteDisplay instanceof Array" class="">
+      <NoteTag :list="note" v-for="note in noteDisplay" />
     </div>
     <div class="ml-auto">
       <Button class="" size="small" icon="pi pi-pencil" variant="text" severity="secondary"
