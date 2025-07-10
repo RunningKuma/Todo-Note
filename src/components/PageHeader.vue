@@ -2,7 +2,7 @@
 import DrawerTrigger from '@/screens/Home/SideBar/DrawerTrigger.vue';
 import Time from '@/components/Time.vue';
 import { Button, Inplace } from 'primevue';
-import InplaceEdit from '@/screens/Home/Note/components/InplaceEdit.vue';
+import InplaceEdit from '@/components/InplaceEdit.vue';
 import { watch } from 'vue';
 import { noteOps } from '@/api/note/note';
 

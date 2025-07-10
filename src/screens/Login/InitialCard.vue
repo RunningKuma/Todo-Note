@@ -54,8 +54,6 @@ const handleForm = async () => {
           <Button type="submit" label="Continue" :loading="loading" />
           <Button label="Sign up with email" class="w-full" severity="secondary" @click="$emit('stepTo', 'register')"
             :disabled="loading" />
-          <Button v-if="isDev" label="Skip login" class="w-full" severity="secondary"
-            @click="router.push({ path: '/' });" />
         </form>
       </div>
     </template>
