@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { NoteClass } from '../models/note';
-import { NoteMeta, NoteTreeNode } from '../types/note';
+
+import { Note, NoteMeta, NoteTreeNode } from '../types/note';
 import { NoteService } from '../services/noteService';
 
 interface AuthenticatedRequest extends Request {
@@ -49,6 +50,7 @@ export class NoteController {
     try {
       const userId = req.user?.id;
       //@todo 需要添加先验证用户存在的检查😂
+
       if (!userId) {
         res.status(401).json({ success: false, message: '未授权访问' });
         return;
@@ -156,11 +158,11 @@ export class NoteController {
         return;
       }
 
-      const note = req.body;
-      if (!note || !note.meta || !note.meta.id) {
-        res.status(400).json({ success: false, message: '请提供完整的笔记数据' });
-        return;
-      }
+      const note: Note = req.body;
+      // if (!note || !note.meta || !note.meta.id) {
+      //   res.status(400).json({ success: false, message: '请提供完整的笔记数据' });
+      //   return;
+      // }
 
       // 验证笔记是否存在
       const existingNote = await NoteClass.findById(note.meta.id);

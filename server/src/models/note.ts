@@ -134,16 +134,29 @@ export const NoteClass = {
     try {
       const tagsJson = note.meta.tags ? JSON.stringify(note.meta.tags) : null;
       const now = new Date().toISOString();
-      
-      await db.run(
-        `UPDATE notes SET title = ?, content = ?, tags = ?, updated_at = ? WHERE id = ?`,
-        [
-          note.meta.title,
-          note.content,
-          tagsJson,
-          now,
-          note.meta.id
-        ]
+      const updateFields: string[] = [];
+      const updateValues: (string | number | null)[] = [];
+
+      if (note.meta.title) {
+        updateFields.push('title = ?');
+        updateValues.push(note.meta.title);
+      }
+      if (note.content) {
+        updateFields.push('content = ?');
+        updateValues.push(note.content);
+      }
+      if (note.meta.tags) {
+        updateFields.push('tags = ?');
+        updateValues.push(tagsJson);
+      }
+      if (note.meta.modified) {
+        updateFields.push('updated_at = ?');
+        updateValues.push(now);
+      }
+
+      await db.execute(
+        `UPDATE notes SET ${updateFields.join(', ')} WHERE id = ?`,
+        [...updateValues, note.meta.id]
       );
 
       return true;
