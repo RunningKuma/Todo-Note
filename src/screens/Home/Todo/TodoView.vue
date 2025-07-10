@@ -24,6 +24,7 @@ const actions: PageHeaderAction[] = [
     icon: 'pi pi-upload',
     onClick: () => {
       // @todo to implement
+      toast.info('Export not implemented yet')
     }
   },
   // {
