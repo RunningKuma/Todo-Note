@@ -3,7 +3,7 @@ import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { testTodo } from '@/api/constants/test';
 import { Button, DataView, Dialog, FloatLabel, IconField, InputIcon, InputText, Select, Toast } from 'primevue';
 import { Todo, TodoCreateData, TodoStatus } from '@/api/types/todo';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import TodoItem from './components/TodoItem.vue';
 // import EditTodoForm from './components/EditTodoForm.vue';
 import TodoDialog from './components/TodoDialog.vue';
@@ -35,6 +35,72 @@ const actions: PageHeaderAction[] = [
   //   }
   // }
 ]
+const draggedNode = ref<Todo | null>(null);
+const dragOverNode = ref<Todo | null>(null);
+
+const handleDragStart = (event: DragEvent, todo: Todo) => {
+  draggedNode.value = todo;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', todo.info.id as string);
+  }
+};
+
+const handleDragOver = (event: DragEvent, todo: Todo) => {
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move';
+  }
+
+  dragOverNode.value = todo;
+
+  // // 计算拖拽位置
+  // const rect = (event.target as HTMLElement).getBoundingClientRect();
+  // const y = event.clientY - rect.top;
+  // const height = rect.height;
+
+};
+
+const handleDragLeave = () => {
+  dragOverNode.value = null;
+};
+
+function _findTodoIndex(todo: Todo) {
+  return todos.value.findIndex((t) => t.info.id === todo.info.id)
+}
+
+const handleDrop = (event: DragEvent, targetTodo: Todo) => {
+  // draggedNode: 原始 Node | dragOverNode, targetTodo: 移动到的 Node
+  event.preventDefault();
+
+  if (!draggedNode.value || draggedNode.value.info.id === targetTodo.info.id) {
+    return;
+  }
+
+  let toIndex = _findTodoIndex(targetTodo)
+
+  let newTodos = todos.value.filter(todo => todo.info.id !== draggedNode.value!.info.id);
+  newTodos = [...newTodos.slice(0, toIndex), draggedNode.value, ...newTodos.slice(toIndex)]
+  // console.log(newTodos.map(todo => todo.info.title))
+  // console.log(newTodos.map(todo => todo.info.id))
+  todos.value = newTodos
+
+  handleTodoOrderChange()
+
+  // 重置拖拽状态
+  draggedNode.value = null;
+  dragOverNode.value = null;
+
+};
+
+// 获取拖拽样式
+const getDragClass = (node: Todo) => {
+  if (dragOverNode.value?.info.id === node.info.id) {
+    return 'drag-over-bottom';
+  }
+  return '';
+};
+
 
 // filter options
 type FliterOption<T> = {
@@ -78,10 +144,37 @@ const searchKey = ref<string>('');
 
 const toast = useToastHelper()
 const todos = ref<Todo[]>([]);
+
+//! 💩就💩吧😈
+// let todoLoad = true
+const todoOrder = ref(localStorage.getItem('todo-order'))
+function handleTodoOrderChange() {
+  // 存储 todo-order
+  const newTodoOrder = todos.value.map(t => t.info.id).join(',')
+  localStorage.setItem('todo-order', newTodoOrder)
+  todoOrder.value = newTodoOrder
+}
+// watch(() => todos.value,
+//   () => {
+//     if (todoLoad || !todos.value.length) return
+//     // 存储 todo-order
+//     const newOrder = todos.value.map(t => t.info.id).join(',')
+//     localStorage.setItem('todo-order', newOrder)
+//     if (todoOrder.value)
+//       todoOrder.value = newOrder
+//   },
+//   { immediate: true }
+// )
+
+// 本地排序功能
+// @dtodo 有非常奇妙的切换页面后第一次拖动无法拖动的问题……
+// @dtodo 以及切换页面后再次拖动导致部分重置的问题()
+// @todo 似乎偶发性存在切换页面后小部分排序错误的问题
 todoOps.getTodos().then(res => {
   // @todo 确实存在较短时间登录仍然 invalid token 的情况
   if (res.success) {
-    todos.value = res.data!;
+    const todoOrder = localStorage.getItem('todo-order');
+    todos.value = todoOrder ? todoOrder.split(',').filter(t => t).map(id => res.data!.find(t => t.info.id === id)!) ?? [] : res.data!;
   }
   else {
     toast.error(res.message || '未知错误', '获取待办列表失败');
@@ -89,6 +182,12 @@ todoOps.getTodos().then(res => {
   }
   // }).catch(err => {
 });
+
+// todos.value = todoOrder.value ?
+//   (
+// const orderTodos = computed<Todo[]>(() => todoOrder.value && todos.value.length ?
+//   (todoOrder.value.split(',').filter(t => t).map(id => todos.value.find(t => t.info.id === id)) ?? []) : todos.value
+// )
 // 筛选功能
 // @todo 下方筛选无效暂时屏蔽 to implement
 let fliterTodos = computed(() => todos.value.filter(todo => todo.info.title.includes(searchKey.value))
@@ -169,6 +268,7 @@ function handleCreateTodo(todo: Todo) {
     if (res.success) {
       todos.value.push(todo);
       handleTodoDialogToggle(false);
+      handleTodoOrderChange()
       toast.success('创建成功');
       console.log('Todo created successfully:', res.data);
     }
@@ -211,6 +311,7 @@ function handleDeleteTodo(id: TodoId) {
   todoOps.deleteTodo(id).then(res => {
     if (res.success) {
       todos.value = todos.value.filter(todo => todo.info.id !== id);
+      handleTodoOrderChange()
       toast.success('Todo 已删除');
     }
   })
@@ -250,9 +351,11 @@ function handleDeleteTodo(id: TodoId) {
       </template>
       <template #list="{ items }">
         <div class="flex flex-col">
-          <TodoItem :todo="todo" v-for="todo in (items as Todo[])" :key="todo.info.id"
-            @edit="handleTodoDialogToggle(true, todo)" @toggle="handleToggleTodo(todo)"
-            @delete="handleDeleteTodo(todo.info.id)" />
+          <TodoItem draggable="true" :class="getDragClass(todo)" :data-node-id="todo.info.id"
+            @dragstart="(event) => handleDragStart(event, todo)" @dragover="(event) => handleDragOver(event, todo)"
+            @dragleave="handleDragLeave" @drop="(event) => handleDrop(event, todo)" :todo="todo"
+            v-for="todo in (items as Todo[])" :key="todo.info.id" @edit="handleTodoDialogToggle(true, todo)"
+            @toggle="handleToggleTodo(todo)" @delete="handleDeleteTodo(todo.info.id)" />
         </div>
       </template>
     </DataView>
@@ -265,3 +368,24 @@ function handleDeleteTodo(id: TodoId) {
     }" @cancel="handleTodoDialogToggle(false)" />
   </div>
 </template>
+
+<style scoped>
+.drag-over-bottom {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px dashed #3b82f6;
+}
+
+/* 拖拽时的光标样式 */
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* 拖拽时降低透明度 */
+.dragging {
+  opacity: 0.5;
+}
+</style>

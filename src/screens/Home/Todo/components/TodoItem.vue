@@ -37,7 +37,7 @@ function handleDelete() {
     <h3 :class="['todo-title', completed ? 'completed text-gray-400' : '', ' text-xl font-bold']">
       {{ todo.info.title }}
     </h3>
-    <!-- @todo bug: 不存在 ddl 时 tags 布局重叠 -->
+    <!-- @dtodo bug: 不存在 ddl 时 tags 布局重叠 -->
     <div class="text-xs flex flex-col gap-1">
       <Rating :class="[completed ? '**:text-gray-400!' : '']" v-model="todo.info.priority" :stars="5" readonly />
       <div v-if="todo.info.ddl">
