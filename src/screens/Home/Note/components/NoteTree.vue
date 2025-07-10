@@ -2,10 +2,10 @@
 import { NoteId } from '@/api/types/gerneral';
 import { NoteTreeNode, NoteTreeType } from '@/api/types/note';
 import { useToastHelper } from '@/api/utils/toast';
-import { Badge, Button, ButtonGroup, Menu, Tree, TreeExpandedKeys, TreeSelectionKeys } from 'primevue';
-import { MenuItem } from 'primevue/menuitem';
+import { noteTreeTool } from '@/api/utils/noteTree';
+import { Badge, Button, ButtonGroup, InputText, Tree, TreeExpandedKeys, TreeSelectionKeys } from 'primevue';
 import { TreeNode } from 'primevue/treenode';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 
 const { noteTreeNodes = [] } = defineProps<{ noteTreeNodes: NoteTreeNode[] }>();
 // const { noteTreeNodes } = withDefaults(defineProps<{
@@ -18,11 +18,21 @@ const emit = defineEmits<{
   (e: 'create', type: NoteTreeType): void;
   (e: 'deleteNote', noteId: string): void;
   (e: 'moveNode', data: { nodeId: string, targetParentId: string | null, targetIndex: number }): void;
+  (e: 'renameNode', data: { nodeId: string, newName: string }): void;
+  (e: 'select', node: TreeNode): void;
 }>();
 
 const selectedNode = ref<TreeSelectionKeys>({});
 const expandedKeys = ref<TreeExpandedKeys>({});
 const menuNoteId = ref<NoteId>();
+const currentMenuNode = ref<NoteTreeNode | null>(null);
+const menuPosition = ref({ x: 0, y: 0 });
+const menuVisible = ref(false);
+
+// 内联重命名相关状态
+const inlineEditingNodeId = ref<string | null>(null);
+const inlineEditValue = ref('');
+
 const createTypeDisplay = ref<boolean>(false); // 是否显示创建类型选择
 let createTypeTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -33,43 +43,73 @@ const dragPosition = ref<'top' | 'middle' | 'bottom'>('middle');
 
 const toast = useToastHelper()
 
-const noteMenuItems: MenuItem[] = [
+// 菜单项配置
+const menuItems = [
   {
-    label: 'Close',
-    items: [
-      {
-        label: 'Export',
-        icon: 'pi pi-upload',
-        command: (event) => {
-          // @todo to implement
-          event.originalEvent.stopPropagation();
-          console.log('Export Note');
-          toast.info('Export Note feature is not implemented yet.');
-        }
-      },
-      {
-        label: 'Rename',
-        icon: 'pi pi-pencil',
-        command: (event) => {
-          // @todo to implement
-          event.originalEvent.stopPropagation();
-          toast.info('Rename Note feature is not implemented yet.');
-        }
-      },
-      {
-        label: 'Delete',
-        icon: 'pi pi-trash',
-        // style: { color: 'red' },
-        command: (event) => {
-          // @todo to implement
-          event.originalEvent.stopPropagation();
-          emit('deleteNote', menuNoteId.value!);
-        }
-      },
-
-    ]
+    label: 'Export',
+    icon: 'pi pi-upload',
+    action: () => {
+      toast.info('Export Note feature is not implemented yet.');
+      closeMenu();
+    }
+  },
+  {
+    label: 'Rename',
+    icon: 'pi pi-pencil',
+    action: () => {
+      if (currentMenuNode.value) {
+        startInlineEdit(currentMenuNode.value);
+      }
+    }
+  },
+  {
+    label: 'Delete',
+    icon: 'pi pi-trash',
+    action: () => {
+      if (currentMenuNode.value) {
+        emit('deleteNote', currentMenuNode.value.key as string);
+      }
+      closeMenu();
+    }
   }
-]
+];
+
+// 显示菜单
+const showMenu = (event: MouseEvent, node: NoteTreeNode) => {
+  event.stopPropagation();
+
+  const buttonRect = (event.target as HTMLElement).getBoundingClientRect();
+
+  menuPosition.value = {
+    x: buttonRect.right + 8, // 按钮右侧 8px
+    y: buttonRect.top
+  };
+
+  currentMenuNode.value = node;
+  menuNoteId.value = node.key as NoteId;
+  menuVisible.value = true;
+
+  // 添加点击外部关闭菜单的监听
+  setTimeout(() => {
+    document.addEventListener('click', handleClickOutside);
+  }, 0);
+};
+
+// 关闭菜单
+const closeMenu = () => {
+  menuVisible.value = false;
+  menuNoteId.value = undefined;
+  currentMenuNode.value = null;
+  document.removeEventListener('click', handleClickOutside);
+};
+
+// 点击外部关闭菜单
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.note-menu') && !target.closest('.menu-button')) {
+    closeMenu();
+  }
+};
 
 const processNodes = (nodes: NoteTreeNode[]): number => {
   let folderCount = 0;
@@ -135,6 +175,55 @@ function handleFileClick() {
   emit('create', 'note')
 }
 
+// 开始内联编辑
+const startInlineEdit = (node: NoteTreeNode) => {
+  inlineEditingNodeId.value = node.key as string;
+  inlineEditValue.value = node.label as string;
+  closeMenu();
+
+  //! autofocus 似乎不生效（
+  nextTick(() => {
+    const inputElement = document.querySelector<HTMLInputElement>('.p-inputtext');
+    if (inputElement) {
+      inputElement.focus();
+      inputElement.select(); // 选中输入框内容
+    }
+  });
+};
+
+// 确认内联编辑
+const confirmInlineEdit = () => {
+  if (!inlineEditingNodeId.value || !inlineEditValue.value.trim()) {
+    toast.error('请输入有效的名称');
+    return;
+  }
+
+  // 调用父组件的重命名方法
+  emit('renameNode', {
+    nodeId: inlineEditingNodeId.value,
+    newName: inlineEditValue.value.trim()
+  });
+
+  cancelInlineEdit();
+};
+
+// 取消内联编辑
+const cancelInlineEdit = () => {
+  inlineEditingNodeId.value = null;
+  inlineEditValue.value = '';
+};
+
+// 处理内联编辑的键盘事件
+const handleInlineEditKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    confirmInlineEdit();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    cancelInlineEdit();
+  }
+};
+
 // 拖拽处理函数
 const handleDragStart = (event: DragEvent, node: NoteTreeNode) => {
   draggedNode.value = node;
@@ -180,7 +269,7 @@ const handleDrop = (event: DragEvent, targetNode: NoteTreeNode) => {
 
   // 防止将父节点拖到子节点中
   // 这里 ai 参数反了😅
-  if (isDescendant(draggedNode.value, targetNode)) {
+  if (noteTreeTool.isDescendant(draggedNode.value, targetNode)) {
     toast.error('不能将文件夹移动到其子节点中');
     return;
   }
@@ -194,7 +283,7 @@ const handleDrop = (event: DragEvent, targetNode: NoteTreeNode) => {
     targetIndex = targetNode.children?.length || 0;
   } else {
     // 拖到节点前后
-    const result = findNodeParentAndIndex(noteTreeNodes, targetNode.key as string);
+    const result = noteTreeTool.findNodeParentAndIndex(noteTreeNodes, targetNode.key as string);
     if (result) {
       targetParentId = result.parentId;
       targetIndex = result.index + (dragPosition.value === 'bottom' ? 1 : 0);
@@ -211,33 +300,6 @@ const handleDrop = (event: DragEvent, targetNode: NoteTreeNode) => {
   draggedNode.value = null;
   dragOverNode.value = null;
   dragPosition.value = 'middle';
-};
-
-// 检查是否是后代节点
-const isDescendant = (ancestor: NoteTreeNode, node: NoteTreeNode): boolean => {
-  if (!ancestor.children) return false;
-
-  for (const child of ancestor.children) {
-    if (child.key === node.key || isDescendant(child, node)) {
-      return true;
-    }
-  }
-  return false;
-};
-
-// 查找节点的父级和索引
-const findNodeParentAndIndex = (nodes: NoteTreeNode[], nodeKey: string, parentId: string | null = null): { parentId: string | null, index: number } | null => {
-  for (let i = 0; i < nodes.length; i++) {
-    const node = nodes[i];
-    if (node.key === nodeKey) {
-      return { parentId, index: i };
-    }
-    if (node.children) {
-      const result = findNodeParentAndIndex(node.children, nodeKey, node.key as string);
-      if (result) return result;
-    }
-  }
-  return null;
 };
 
 // 获取拖拽样式
@@ -257,16 +319,12 @@ const getDragClass = (node: NoteTreeNode) => {
   return '';
 };
 
-function handleNoteSelect(e: TreeNode) {
-  console.log(e);
-  // @todo to implement
-}
 console.log(expendedNum)
 </script>
 <template>
   <Tree :value="noteTreeNodes" v-model:selection-keys="selectedNode" v-model:expanded-keys="expandedKeys"
     class="w-note-sidebar h-full overflow-y-auto" selectionMode="single" :filter="true" filterBy="label"
-    filterPlaceholder="搜索笔记..." @node-select="handleNoteSelect">
+    filterPlaceholder="搜索笔记..." @node-select="emit('select', $event)">
     <template #header>
       <div class="flex">
         <span class="text-lg font-semibold">我的笔记</span>
@@ -294,27 +352,48 @@ console.log(expendedNum)
         class="text-secondary"></i>
     </template>
     <template #default="{ node }">
-      <div class="flex items-center w-full relative" :class="getDragClass(node as NoteTreeNode)" draggable="true"
-        @dragstart="(event) => handleDragStart(event, node as NoteTreeNode)"
-        @dragover="(event) => handleDragOver(event, node as NoteTreeNode)" @dragleave="handleDragLeave"
-        @drop="(event) => handleDrop(event, node as NoteTreeNode)">
-        <span class="text-secondary flex-1">{{ node.label }}</span>
-        <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary"
-          :value='node.children?.length || 0' />
-        <Button class="size-6! text-xs! ml-2" severity="secondary" rounded outlined
-          :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'" @click.stop="() => {
-            if (menuNoteId === node.key) {
-              menuNoteId = undefined;
-            } else {
-              menuNoteId = node.key;
-            }
-          }" />
-        <Menu v-if="!(draggedNode && draggedNode.key === node.key)"
-          :class="(menuNoteId === node.key ? 'h-40' : 'h-0! border-0!') + ' overflow-hidden absolute z-10 transition-all duration-300'"
-          :model="noteMenuItems" @blur="menuNoteId = undefined" append-to="body" />
+      <div class="flex items-center w-full relative"
+           :class="getDragClass(node as NoteTreeNode)"
+           :data-node-id="node.key"
+           draggable="true"
+           @dragstart="(event) => handleDragStart(event, node as NoteTreeNode)"
+           @dragover="(event) => handleDragOver(event, node as NoteTreeNode)"
+           @dragleave="handleDragLeave"
+           @drop="(event) => handleDrop(event, node as NoteTreeNode)">
+
+        <!-- 普通显示状态 -->
+        <span v-if="inlineEditingNodeId !== node.key"
+              class="text-secondary flex-1">{{ node.label }}</span>
+
+        <!-- 内联编辑状态 -->
+        <InputText v-else v-model="inlineEditValue" class="w-full! p-0! flex-1 text-sm" size="small" :class="{ 'p-invalid': !inlineEditValue.trim() }" @click.stop @keydown="handleInlineEditKeydown" @blur="cancelInlineEdit" autofocus/>
+
+        <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary" :value='node.children?.length || 0' />
+        <Button class="size-6! text-xs! ml-2 menu-button" severity="secondary" rounded outlined
+                :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'"
+                @click.stop="(event) => {
+                  event.stopPropagation
+                  if (menuNoteId === node.key) {
+                    closeMenu();
+                  } else {
+                    showMenu(event, node as NoteTreeNode);
+                  }
+                }" />
       </div>
     </template>
   </Tree>
+
+  <!-- 自定义菜单 -->
+  <div v-if="menuVisible"
+       class="note-menu fixed z-50 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-32"
+       :style="{ left: menuPosition.x + 'px', top: menuPosition.y + 'px' }">
+    <div v-for="item in menuItems" :key="item.label"
+         class="menu-item flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
+         @click="item.action">
+      <i :class="item.icon" class="text-xs"></i>
+      <span>{{ item.label }}</span>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -343,5 +422,33 @@ console.log(expendedNum)
 /* 拖拽时降低透明度 */
 .dragging {
   opacity: 0.5;
+}
+
+/* 菜单样式 */
+.note-menu {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.note-menu .menu-item:hover {
+  background-color: #f3f4f6;
+}
+
+.note-menu .menu-item:last-child {
+  color: #dc2626; /* 删除按钮红色 */
+}
+
+.note-menu .menu-item:last-child:hover {
+  background-color: #fef2f2;
 }
 </style>

@@ -4,6 +4,7 @@
 @custom-variant dark (&:where(.my-app-dark, .my-app-dark *));
 
 :root {
+  interpolate-size: allow-keywords;
   font-family: Inter, sans-serif;
   font-feature-settings: 'liga' 1, 'calt' 1;
   --p-inplace-padding: 0.5rem 0 !important;
