@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import type { Note, NoteMeta, NoteTreeNode } from '../types/note';
+import type { Note, NoteMeta, NoteTreeNode, UpdateNote, UpdateNoteMeta } from '../types/note';
 import { request } from '../utils/request';
 import { ApiResponse } from '../types/request';
 import { NoteId } from '../types/gerneral';

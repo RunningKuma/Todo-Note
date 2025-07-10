@@ -118,9 +118,15 @@ export class NoteController {
         return;
       }
 
-      const noteMeta: Omit<NoteMeta, 'id' | 'create' | 'modified'> = req.body;
+      const noteMeta: NoteMeta = req.body;
       if (!noteMeta.title || noteMeta.title.trim() === '') {
         res.status(400).json({ success: false, message: '笔记标题不能为空' });
+        return;
+      }
+
+      // 检查前端是否传递了id
+      if (!noteMeta.id) {
+        res.status(400).json({ success: false, message: '请提供笔记ID' });
         return;
       }
 

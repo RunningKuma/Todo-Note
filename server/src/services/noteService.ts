@@ -4,4 +4,5 @@ export class NoteService {
   constructor() {
     NoteClass.createTable();
   }
+
 }
