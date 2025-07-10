@@ -29,7 +29,6 @@ const visible = ref(true);
 
     </div>
   </div>
-  <Toast />
 </template>
 
 <style>
