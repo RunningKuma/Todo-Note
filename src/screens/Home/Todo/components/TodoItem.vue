@@ -34,17 +34,19 @@ function handleDelete() {
 <template>
   <div class="w-full h-15 px-5 py-2.5 flex items-center gap-2.5">
     <Checkbox class="" :default-value="completed" binary @value-change="() => emit('toggle', todo)" />
-    <h3 class="text-xl font-bold">{{ todo.info.title }}</h3>
+    <h3 :class="['todo-title', completed ? 'completed text-gray-400' : '', ' text-xl font-bold']">
+      {{ todo.info.title }}
+    </h3>
     <!-- @todo bug: 不存在 ddl 时 tags 布局重叠 -->
     <div class="text-xs flex flex-col gap-1">
-      <Rating v-model="todo.info.priority" class="w-20" :stars="5" readonly />
-      <div>
-        <i class="pi pi-clock align-middle"></i><span class="ml-0.5">{{ todo.info.ddl?.toLocaleString() }}</span>
+      <Rating :class="[completed ? '**:text-gray-400!' : '']" v-model="todo.info.priority" :stars="5" readonly />
+      <div v-if="todo.info.ddl">
+        <i class="pi pi-clock align-middle"></i><span class="ml-0.5">{{ todo.info.ddl.toLocaleString() }}</span>
       </div>
     </div>
-    <div class="">
+    <div v-if="todo.info.tags" class="">
       <i class="pi pi-tag align-middle"></i>
-      <span class="ml-0.5">{{ todo.info.tags?.join(', ') }}</span>
+      <span class="ml-0.5">{{ todo.info.tags.join(', ') }}</span>
     </div>
     <div class="ml-auto">
       <Button class="" size="small" icon="pi pi-pencil" variant="text" severity="secondary"
@@ -58,3 +60,35 @@ function handleDelete() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.todo-title {
+  position: relative;
+  display: inline-block;
+}
+
+.todo-title.completed::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: calc(50%);
+  width: calc(100% + 10px);
+  height: 2px;
+  background: #000 60%;
+  /* transform: translateY(-50%); */
+  pointer-events: none;
+  animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+
+  to {
+    width: calc(100% + 10px);
+    opacity: 1;
+  }
+}
+</style>
