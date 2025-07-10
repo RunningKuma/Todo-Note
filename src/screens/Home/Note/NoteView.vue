@@ -24,29 +24,39 @@ const actions: PageHeaderAction[] = [
     icon: 'pi pi-refresh',
     onClick: () => {
       // @todo to implement
+      if (!noteId.value) {
+        toast.error('还没有打开笔记呢')
+        return
+      }
+      noteOps.getNote(noteId.value).then((res) => {
+        if (res.success) {
+          note.value = res.data!;
+          toast.success(`笔记 ${noteId.value} 已更新`)
+        } else {
+          toast.error(res.message ?? '未知错误');
+        }
+      }).catch((error) => {
+        console.error('Failed to fetch note:', error);
+      });
     }
   },
-  {
-    label: '历史记录',
-    icon: 'pi pi-history',
-    onClick: () => {
-      // @todo to implement
-    }
-  },
+  // {
+  //   label: '历史记录',
+  //   icon: 'pi pi-history',
+  //   onClick: () => {
+  //     // @todo to implement
+  //     toast.info('History not implemented yet')
+  //   }
+  // },
   {
     label: '导出',
     icon: 'pi pi-upload',
     onClick: () => {
       // @todo to implement
+      toast.info('Export not implemented yet')
     }
   },
-  {
-    label: '更多',
-    icon: 'pi pi-ellipsis-h',
-    onClick: () => {
-      // @todo to implement
-    }
-  }
+
 ]
 const vditorElement = ref<HTMLDivElement | undefined>();
 const toast = useToastHelper();

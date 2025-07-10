@@ -30,8 +30,15 @@ const routes: readonly RouteRecordRaw[] = [
       {
         path: 'note',
         name: 'note',
-        component: Note
-
+        component: Note,
+        children: [
+          {
+            path: ':id',
+            name: 'note-detail',
+            component: Note,
+            props: true
+          },
+        ]
       },
     ]
   },

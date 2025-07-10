@@ -29,7 +29,7 @@ class DatabaseService {
    */
   private async initializeTables(): Promise<void> {
     try {
-      
+
       // 创建用户表
       await this.run(`CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY NOT NULL,
@@ -73,7 +73,7 @@ class DatabaseService {
       await this.run('CREATE INDEX IF NOT EXISTS idx_todos_user_id ON todos(user_id)');
       await this.run('CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id)');
       await this.run('CREATE INDEX IF NOT EXISTS idx_notes_updated_at ON notes(updated_at)');
-      
+
       console.log('✓ 数据库表结构初始化完成');
     } catch (error) {
       console.error('❌ 初始化数据库表结构失败:', error);
@@ -88,7 +88,7 @@ class DatabaseService {
   async connect(path: string = resolve(__dirname, '../../database/database.sqlite')): Promise<void> {
     try {
       console.log('正在连接数据库...');
-      
+
       // 检查数据库文件是否存在
       const isNewDatabase = !this.checkDatabaseExists(path);
       if (isNewDatabase) {
@@ -105,17 +105,17 @@ class DatabaseService {
             reject(err);
           } else {
             console.log('✅ 数据库连接成功');
-            
+
             try {
               // 初始化表结构（对于新数据库和现有数据库都执行）
               await this.initializeTables();
-              
+
               if (isNewDatabase) {
                 console.log('🎉 新数据库创建并初始化完成');
               } else {
                 console.log('🔄 现有数据库表结构检查完成');
               }
-              
+
               resolve();
             } catch (initError) {
               console.error('❌ 数据库初始化失败:', initError);
