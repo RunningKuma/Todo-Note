@@ -20,7 +20,6 @@ export type PageHeaderAction = {
 }
 const { title, actions } = defineProps<{
   title: string;
-  note_title?: string;
   actions: PageHeaderAction[];
 }>();
 </script>

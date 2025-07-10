@@ -42,10 +42,10 @@ const _editingValue = ref<Date | string>(
 async function handleEditConfirm() {
   if (type === 'array') {
     value.value = (_editingValue.value as string).split(/，,/g).map(item => item.trim()).filter(item => item);
-    console.log((_editingValue.value as string).split(/，,/g).map(item => item.trim()).filter(item => item))
+    // console.log((_editingValue.value as string).split(/，,/g).map(item => item.trim()).filter(item => item))
   } else {
     value.value = _editingValue.value!;
-    console.table([value.value, _editingValue.value]);
+    // console.table([value.value, _editingValue.value]);
   }
   //! vue3 强制刷新！
   triggerRef(value);
