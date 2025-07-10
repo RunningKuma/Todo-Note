@@ -31,7 +31,7 @@ function handleDelete() {
     }, 2000);
   }
 }
-const noteDisplay = ref<NoteList[] | undefined>(JSON.parse(todo.info.note_link ?? '{}'))
+const noteDisplay = computed<NoteList[] | undefined>(() => JSON.parse(todo.info.note_link ?? '{}'))
 // console.log(noteDisplay.value)
 </script>
 
