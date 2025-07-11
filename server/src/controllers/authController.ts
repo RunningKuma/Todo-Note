@@ -10,6 +10,8 @@ import { generateToken, verifyToken } from '@server/utils/jwt';
 import nodemailer, { TransportOptions } from 'nodemailer'
 import { ApiResponse } from '@server/types/request';
 import { UserRawData } from '@server/types/db';
+import fs from 'fs';
+import path from 'path';
 
 export class AuthController {
   private userService: UserService;
@@ -18,6 +20,26 @@ export class AuthController {
   constructor() {
     this.userService = new UserService();
     this.todoService = new TodoService();
+  }
+
+  // 读取邮件模板并替换验证码
+  private getEmailTemplate(code: string): string {
+    try {
+      const templatePath = path.join(__dirname, '..', 'templates', 'verification-email.html');
+      const template = fs.readFileSync(templatePath, 'utf-8');
+      return template.replace('{{CODE}}', code);
+    } catch (error) {
+      console.error('读取邮件模板失败:', error);
+      // 如果模板文件读取失败，返回简单的HTML
+      return `
+        <div style="text-align: center; padding: 40px; font-family: Arial, sans-serif;">
+          <h2 style="color: #ffba00;">登录验证码</h2>
+          <p>您的验证码是：</p>
+          <div style="font-size: 36px; font-weight: bold; color: #ffe291; margin: 20px 0; letter-spacing: 4px;">${code}</div>
+          <p style="color: #ef4444;">验证码有效期为5分钟，请及时使用。</p>
+        </div>
+      `;
+    }
   }
 
   //! 使用 成员定义 会导致 express 路由处理器中的 this 绑定丢失为 undefined
@@ -30,25 +52,29 @@ export class AuthController {
       res.status(400).json({ success: false, message: '邮箱或验证码为空' })
       return
     }
-    const storedData = this.verificationCodes.get(email);
-    if (!storedData) {
-      res.status(400).json({ success: false, message: '验证码不存在或已过期' });
-      return
-    }
 
-    if (Date.now() > storedData.expires) {
+    // bypass 处理
+    if (process.env.MAIL_USER || code !== 'bypass') {
+      const storedData = this.verificationCodes.get(email);
+      if (!storedData) {
+        res.status(400).json({ success: false, message: '验证码不存在或已过期' });
+        return
+      }
+
+      if (Date.now() > storedData.expires) {
+        this.verificationCodes.delete(email);
+        res.status(400).json({ success: false, message: '验证码已过期' });
+        return
+      }
+
+      if (storedData.code !== code) {
+        res.status(400).json({ success: false, message: '验证码错误' });
+        return
+      }
+
+      // 验证成功，删除验证码
       this.verificationCodes.delete(email);
-      res.status(400).json({ success: false, message: '验证码已过期' });
-      return
     }
-
-    if (storedData.code !== code) {
-      res.status(400).json({ success: false, message: '验证码错误' });
-      return
-    }
-
-    // 验证成功，删除验证码
-    this.verificationCodes.delete(email);
 
     //@todo 传过来的 password 不应是明文
     const hashedPassword = await hashPassword(password);
@@ -114,14 +140,31 @@ export class AuthController {
     }
   } as TransportOptions)
   public sendCode = async (req: Request, res: Response<ApiResponse<undefined>>): Promise<void> => {
-    console.debug('using email ' + process.env.MAIL_USER)
+    console.debug(process.env.MAIL_USER ? 'MAIL env not set' : 'using email ' + process.env.MAIL_USER)
+
+    // bypass 提示
+    if (!process.env.MAIL_USER) {
+      res.status(500).json({ success: false, message: '服务端未设置验证邮箱服务，请使用字符串 "bypass" 绕过。' })
+      return
+    }
     const { email } = req.body as { email: string }
     if (!email) {
       res.status(400).json({ success: false, message: '邮箱不能为空' });
       return
     }
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const user = await this.userService.getUserByEmail(email);
+    if (user) {
+      res.status(401).json({ success: false, message: 'User already exists' }).send();
+      return;
+    }
+    let code: string
+    const storedData = this.verificationCodes.get(email);
+    if (storedData && Date.now() < storedData.expires - 20 * 1000) {
+      code = storedData.code
+    }
+    else {
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+    }
     const expires = Date.now() + 5 * 60 * 1000; // 5分钟过期
 
     // 存储验证码
@@ -132,12 +175,8 @@ export class AuthController {
       await this.transporter.sendMail({
         from: `"Woisol-G" <${process.env.MAIL_USER}>`, // 必须使用认证的邮箱地址
         to: email,
-        subject: '登录验证码',
-        html: `
-          <h2>登录验证码</h2>
-          <p>您的验证码是：<strong style="font-size: 24px; color: #007bff;">${code}</strong></p>
-          <p>验证码有效期为5分钟，请及时使用。</p>
-        `
+        subject: 'Todo-Note 登录验证码',
+        html: this.getEmailTemplate(code)
       });
 
       res.status(201).json({ success: true, message: '验证码已发送到您的邮箱' });
