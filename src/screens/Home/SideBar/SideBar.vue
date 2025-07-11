@@ -16,7 +16,6 @@ const handleLogout = () => {
 };
 
 const tabs: SideBarTabInterface[] = [
-  { name: 'search', icon: 'pi pi-search', route: { name: 'search' } },
   { name: 'overview', icon: 'pi pi-home', route: { name: 'home' } },
   { name: 'todos', icon: 'pi pi-check-square', route: { name: 'todos' } },
   { name: 'note', icon: 'pi pi-pen-to-square', route: { name: 'note' } },
