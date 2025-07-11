@@ -4,6 +4,7 @@ import router from "@/router";
 import { testUserData } from "../constants/test";
 import { request } from "../utils/request";
 import { AxiosError, AxiosResponse } from "axios";
+import { ApiResponse } from "../types/request";
 
 let _userData: UserData | undefined;
 
@@ -112,8 +113,8 @@ export const userOps = {
     }
     return { success: false, message: message ?? `${response.statusText}(${response.status})` };
   },
-  register: async (email: string, username: string, password: string) => {
-    const response = await request.post('/auth/register', { email, username, password })
+  register: async (email: string, username: string, password: string, code: string) => {
+    const response = await request.post('/auth/register', { email, username, password, code })
       // fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, username, password }) })
       .catch((res: AxiosError) => {
         return { success: false, ...res.response } as AxiosResponse;
@@ -131,6 +132,26 @@ export const userOps = {
       return { success: true, message };
     }
     return { success: false, message: message ?? `${response.statusText}(${response.status})` };
+  },
+  sendCode: async (email: string) => {
+    try {
+      const response = await request.post('/auth/register/send', { email })
+        .catch(res => {
+          console.error('请求验证码失败:', res);
+          return { success: false, ...res.response } as AxiosResponse;
+        });
+      const { message } = response.data as { message: string } ?? { message: '' };
+
+      if (response.status === 201) {
+        return response.data as ApiResponse<undefined>;
+        // return { success: true, data: response.data as Todo, message: '' };
+      }
+
+      return { success: false, message: message ?? '请求验证码失败' };
+    } catch (error) {
+      console.error(error)
+      return { success: false, message: '未知错误' + error };
+    }
   },
   logout: () => {
     _userData = undefined;

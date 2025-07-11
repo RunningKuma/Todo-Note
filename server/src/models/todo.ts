@@ -180,6 +180,22 @@ export const TodoModel = {
     }
   },
 
+  /**
+   * 获取用户最近创建的TODO（按创建时间排序，最多10个）
+   */
+  async findRecentByUserId(userId: UserId, limit: number = 10): Promise<Todo[]> {
+    try {
+      const todos = await db.query<TodoRawData>(
+        'SELECT * FROM todos WHERE user_id = ? ORDER BY created_at DESC LIMIT ?',
+        [userId, limit]
+      );
+      return batchDbToTodo(todos);
+    } catch (error) {
+      console.error('Error finding recent todos by user ID:', error);
+      throw error;
+    }
+  },
+
   // /**
   //  * 按标签获取TODO
   //  */

@@ -1,4 +1,4 @@
-import { Todo, TodoCreateData } from '@server/types/todo';
+import { TodoCreateData, Todo } from '@server/types/todo';
 import { TodoModel } from '../models/todo';
 import { TodoId, UserId } from '@server/types/gerneral';
 
@@ -32,7 +32,7 @@ export class TodoService {
   /**
    * 更新TODO
    */
-  async updateTodo(todo: TodoCreateData) {
+  async updateTodo(todo: Partial<TodoCreateData>) {
     return await TodoModel.update(todo);
   }
 
@@ -50,24 +50,10 @@ export class TodoService {
     return await TodoModel.toggleCompleted(id, complete);
   }
 
-  // /**
-  //  * 获取已完成的TODO
-  //  */
-  // async getCompletedTodos(userId: string): Promise<TodoData[]> {
-  //   return await Todo.findCompleted(userId);
-  // }
-
-  // /**
-  //  * 获取未完成的TODO
-  //  */
-  // async getPendingTodos(userId: string): Promise<TodoData[]> {
-  //   return await Todo.findPending(userId);
-  // }
-
-  // /**
-  //  * 按分类获取TODO
-  //  */
-  // async getTodosByCategory(userId: string, category: string): Promise<TodoData[]> {
-  //   return await Todo.findByCategory(userId, category);
-  // }
+  /**
+   * 获取用户最近的TODO
+   */
+  async getRecentTodos(userId: UserId, limit: number = 10) {
+    return await TodoModel.findRecentByUserId(userId, limit);
+  }
 }

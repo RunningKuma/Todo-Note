@@ -28,7 +28,6 @@ const visible = ref(true);
       <RouterView v-model="visible" />
     </div>
   </div>
-  <Toast />
 </template>
 
 <style>

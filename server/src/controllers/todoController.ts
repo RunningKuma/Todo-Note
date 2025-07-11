@@ -307,4 +307,30 @@ export class TodoController {
   //     });
   //   }
   // };
+
+  /**
+   * 获取用户最近的TODO
+   */
+  public getRecentTodos = async (req: AuthenticatedRequest, res: Response<ApiResponse<Todo[]>>): Promise<void> => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401).json({ success: false, message: '未授权访问' });
+        return;
+      }
+
+      const todos = await this.todoService.getRecentTodos(userId);
+      res.status(200).json({
+        success: true,
+        data: todos,
+        message: '获取最近TODO列表成功'
+      });
+    } catch (error) {
+      console.error('Error getting recent todos:', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
 }

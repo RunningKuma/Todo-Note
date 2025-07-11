@@ -13,6 +13,7 @@ router.get('/', todoController.getTodos);              // 获取所有TODO
 router.post('/', todoController.createTodo);           // 创建新TODO
 router.put('/', todoController.updateTodo);         // 更新TODO
 router.delete('/:id', todoController.deleteTodo);      // 删除TODO
+router.get('/Recent', todoController.getRecentTodos); // 获取最近的TODO
 
 // TODO 状态操作
 router.patch('/toggle', todoController.toggleTodo); // 切换完成状态
