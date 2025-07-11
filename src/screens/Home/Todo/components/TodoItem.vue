@@ -31,29 +31,47 @@ function handleDelete() {
     }, 2000);
   }
 }
+
+const MAX_NOTE_TAGS = 3
 const noteDisplay = computed<NoteList[] | undefined>(() => JSON.parse(todo.info.note_link ?? '{}'))
+const noteTagsToShow = computed(() => {
+  if (noteDisplay.value instanceof Array) {
+    return noteDisplay.value.slice(0, MAX_NOTE_TAGS)
+  }
+  return []
+})
+const noteTagsOverflow = computed(() => {
+  if (noteDisplay.value instanceof Array) {
+    return noteDisplay.value.length - MAX_NOTE_TAGS
+  }
+  return 0
+})
 // console.log(noteDisplay.value)
 </script>
 
 <template>
-  <div class="w-full h-15 px-5 py-2.5 flex items-center gap-2.5">
+  <div class="w-full px-5 py-2.5 flex items-center gap-2.5 overflow-hidden">
     <Checkbox class="" :default-value="completed" binary @value-change="() => emit('toggle', todo)" />
-    <h3 :class="['todo-title', completed ? 'completed text-gray-400' : '', ' text-xl font-bold']">
-      {{ todo.info.title }}
-    </h3>
-    <!-- @dtodo bug: 不存在 ddl 时 tags 布局重叠 -->
-    <div class="text-xs flex flex-col gap-1">
-      <Rating :class="[completed ? '**:text-gray-400!' : '']" v-model="todo.info.priority" :stars="5" readonly />
-      <div v-if="todo.info.ddl">
-        <i class="pi pi-clock align-middle"></i><span class="ml-0.5">{{ todo.info.ddl.toLocaleString() }}</span>
+    <div class="w-full flex flex-col flex-1 overflow-hidden">
+      <div class="flex gap-2.5 overflow-hidden">
+        <h3 :class="['todo-title overflow-hidden text-ellipsis', completed ? 'completed text-gray-400' : '', ' text-xl font-bold']">
+          {{ todo.info.title }}
+        </h3>
+        <Rating :class="[completed ? '**:text-gray-400!' : '']" v-model="todo.info.priority" :stars="5" readonly />
       </div>
-    </div>
-    <div v-if="todo.info.tags" class="">
-      <i class="pi pi-tag align-middle"></i>
-      <span class="ml-0.5">{{ todo.info.tags.join(', ') }}</span>
-    </div>
-    <div v-if="noteDisplay instanceof Array" class="">
-      <NoteTag :list="note" v-for="note in noteDisplay" />
+      <div class="flex gap-2.5 overflow-hidden text-md">
+        <div v-if="todo.info.ddl" class="flex items-center">
+          <i class="pi pi-clock align-middle"></i><span class="ml-0.5 leading-">{{ todo.info.ddl.toLocaleString() }}</span>
+        </div>
+        <div v-if="todo.info.tags" class="flex items-center">
+          <i class="pi pi-tag align-middle"></i>
+          <span class="ml-0.5">{{ todo.info.tags.join(', ') }}</span>
+        </div>
+        <div v-if="noteDisplay instanceof Array" class="flex-1 flex items-center gap-1 overflow-hidden">
+          <NoteTag :list="note" v-for="note in noteTagsToShow" :key="note.id" />
+          <span v-if="noteTagsOverflow > 0" class="note-overflow">+{{ noteTagsOverflow }}</span>
+        </div>
+      </div>
     </div>
     <div class="ml-auto">
       <Button class="" size="small" icon="pi pi-pencil" variant="text" severity="secondary"

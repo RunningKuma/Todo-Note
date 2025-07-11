@@ -82,6 +82,7 @@ const handleDrop = (event: DragEvent, targetTodo: Todo) => {
 
   let newTodos = todos.value.filter(todo => todo.info.id !== draggedNode.value!.info.id);
   newTodos = [...newTodos.slice(0, toIndex), draggedNode.value, ...newTodos.slice(toIndex)]
+
   // console.log(newTodos.map(todo => todo.info.title))
   // console.log(newTodos.map(todo => todo.info.id))
   todos.value = newTodos
