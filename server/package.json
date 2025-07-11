@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Backend server of Todo-Note.",
   "main": "src/index.js",
+  "type": "commonjs",
   "scripts": {
     "dev": "ts-node -r tsconfig-paths/register -r dotenv/config src/index.ts",
     "build": "tsc",

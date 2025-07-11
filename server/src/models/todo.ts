@@ -171,7 +171,6 @@ export const TodoModel = {
       }
 
       const newStatus: TodoStatus['completed'] = complete ? 'completed' : 'not-started';
-      // @ts-expect-error part of TodoInfo
       const response = await this.update({ info: { id }, status: { completed: newStatus } });
       return response > 0 ? true : false;
     } catch (error) {

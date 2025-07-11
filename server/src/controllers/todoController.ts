@@ -74,7 +74,6 @@ export class TodoController {
         message: 'TODO创建成功'
       });
     } catch (error) {
-      // @ts-expect-error unknown error type
       if (error.code === 'SQLITE_CONSTRAINT') {
         res.status(400).json({ success: false, message: 'Error：尝试创建相同 Todo' });
         return;
