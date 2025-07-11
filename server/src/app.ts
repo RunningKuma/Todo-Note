@@ -5,12 +5,18 @@ import todoRoutes from './routes/todo';
 import noteRoutes from './routes/note';
 import { db } from './config/database';
 // import userRoutes from './routes/user';
+import cors from 'cors'
 
 const app = express();
 
 // Middleware
 app.use(json());
 app.use(urlencoded({ extended: true }));
+app.use(cors({
+  origin: ["http://tauri.localhost", "http://localhost"],
+  credentials: true,
+  exposedHeaders: ['authorization']
+}))
 
 // Connect to the database and initialize
 db.connect().then(() => {
