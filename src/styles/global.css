@@ -11,9 +11,9 @@
 }
 @theme {
   --color-primary: var(--color-orange-500);
-  --spacing-sidebar: 120px;
-  --spacing-sidebar-tabh: 35px;
-    --spacing-note-sidebar: 256px;
+  --spacing-sidebar: 80px;
+  --spacing-sidebar-tabh: 45px;
+  --spacing-note-sidebar: 300px;
 }
 
 @supports (font-variation-settings: normal) {

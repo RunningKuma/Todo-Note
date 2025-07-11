@@ -14,8 +14,8 @@ interface _SidebarTabProps extends SideBarTabInterface {
 const { name, icon, route, isCurrent } = defineProps<_SidebarTabProps>();
 </script>
 <template>
-  <RouterLink variant="text" size="small" class="block relative place-items-center w-full! h-sidebar-tabh p-1.5 z-10"
+  <RouterLink variant="text" size="small" class="block relative place-items-center w-full! h-sidebar-tabh p-1 z-10"
     :name="name" :icon="icon" :to="route">
-    <i :class="[icon, isCurrent ? 'text-white!' : '', 'w-full h-fit text-lg text-center']" />
+    <i :class="[icon, isCurrent ? 'text-white!' : '', 'w-full h-fit text-lg! text-center']" />
   </RouterLink>
 </template>

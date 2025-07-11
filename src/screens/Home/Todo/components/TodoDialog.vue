@@ -59,7 +59,7 @@
             笔记
           </label>
           <!-- <InputText id="note_link" v-model="formData.info.note_link" placeholder="输入" class="w-full" /> -->
-          <MultiSelect v-model="selectNotes" :options="noteFullList" optionLabel="title" display="chip"
+          <MultiSelect class="w-full" v-model="selectNotes" :options="noteFullList" optionLabel="title" display="chip"
             placeholder="此 Todo 的相关笔记（可选）" filter :loading="isLoadingNotes" @change="handleSelectNoteChange" />
         </div>
 

@@ -5,6 +5,6 @@ const visible = defineModel<boolean>();
 </script>
 
 <template>
-  <Button class="btn-scale transition-all! duration-300!" icon="pi pi-bars" variant="text" severity="secondary"
+  <Button class="btn-scale transition-all! duration-300! mr-0.5" icon="pi pi-bars" variant="text" severity="secondary"
     size="small" @click="visible = !visible" />
 </template>

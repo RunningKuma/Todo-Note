@@ -132,7 +132,6 @@ Todo-Note/
 │   │   │   ├── SideBar/            # 侧边栏模块
 │   │   │   │   └── DrawerTrigger.vue # 侧边栏切换按钮
 │   │   │   ├── Overview/           # 概览页面(原主页)
-│   │   │   └── Search/             # 搜索功能
 │   │   └── Login/                  # 登录注册页面
 │   │       ├── LoginView.vue       # 登录主界面
 │   │       ├── LoginCard.vue       # 登录卡片(邮箱密码)
