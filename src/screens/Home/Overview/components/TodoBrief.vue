@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Divider, Rating } from 'primevue';
 import { Todo } from '@/api/types/todo';
+import TimeDisplay from '@/components/TimeDisplay.vue';
 
 const { todo } = defineProps<{ todo: Todo }>()
 
@@ -16,7 +17,7 @@ const emit = defineEmits<{
   <div class="w-full flex overflow-hidden items-center">
     <div class="w-24">
       <div v-if="todo.info.ddl !== undefined" class="text-right">
-        <span>{{ /* todo.info.id */ "3 天前" }}</span>
+        <TimeDisplay :time="todo.info.ddl"></TimeDisplay>
         <span class="m-2">·</span>
       </div>
     </div>

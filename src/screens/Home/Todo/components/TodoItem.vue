@@ -5,6 +5,7 @@ import { handle } from '@primeuix/themes/aura/imagecompare';
 import { Button, Checkbox, Rating } from 'primevue';
 import { computed, ref } from 'vue';
 import NoteTag from './NoteTag.vue';
+import TimeDisplay from '@/components/TimeDisplay.vue';
 
 const { todo } = defineProps<{ todo: Todo }>()
 
@@ -60,10 +61,11 @@ const noteTagsOverflow = computed(() => {
         <Rating :class="[completed ? '**:text-gray-400!' : '']" v-model="todo.info.priority" :stars="5" readonly />
       </div>
       <div class="flex gap-2.5 overflow-hidden text-md">
-        <div v-if="todo.info.ddl" class="flex items-center">
-          <i class="pi pi-clock align-middle"></i><span class="ml-0.5 leading-">{{ todo.info.ddl.toLocaleString() }}</span>
+        <div v-if="todo.info.ddl" class="flex items-center gap-2">
+          <i class="pi pi-clock align-middle"></i>
+          <TimeDisplay :time="todo.info.ddl"></TimeDisplay>
         </div>
-        <div v-if="todo.info.tags" class="flex items-center">
+        <div v-if="todo.info.tags" class="flex items-center gap-2">
           <i class="pi pi-tag align-middle"></i>
           <span class="ml-0.5">{{ todo.info.tags.join(', ') }}</span>
         </div>

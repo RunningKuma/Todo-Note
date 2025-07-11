@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import NoteTree from './components/NoteTree.vue';
 import PageHeader, { PageHeaderAction } from '@/components/PageHeader.vue';
 import { noteDiffEngine } from '@/api/note/diffEngine';
-import 'vditor/dist/index.css';
 import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType, UpdateNote } from '@/api/types/note';
 import { noteOps } from '@/api/note/note';
 import { useToastHelper } from '@/api/utils/toast';
 import { useConfirm } from 'primevue/useconfirm';
 import { createEmptyNoteMeta } from '@/api/utils/note';
 import { noteTreeTool } from '@/api/utils/noteTree';
-import NoteMeta from './components/NoteMeta.vue';
 import { TreeNode } from 'primevue/treenode';
-import { testNote } from '@/api/constants/test';
+import NoteEdit from './components/NoteEdit.vue';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -58,7 +56,6 @@ const actions: PageHeaderAction[] = [
   },
 
 ]
-const vditorElement = ref<HTMLDivElement | undefined>();
 const toast = useToastHelper();
 const confirm = useConfirm();
 
@@ -145,21 +142,6 @@ watch(
   },
   { immediate: true }
 )
-
-onMounted(async () => {
-  if (vditorElement.value) {
-    await noteDiffEngine.initVditor(vditorElement.value, toast, {
-      height: '100%',
-      placeholder: 'Start Typing Here...',
-    });
-    noteDiffEngine.setAutoSave(true, 2 * 60 * 1000);
-    // noteDiffEngine.setContent(note.value.content);
-  }
-});
-
-onUnmounted(() => {
-  noteDiffEngine.destroy();
-});
 
 function handleNoteTreeRefresh() {
   noteOps.getNoteTree().then((res) => {
@@ -424,7 +406,7 @@ function handlePageHeaderUpdateTitle() {
 
 </script>
 <template>
-  <div class="h-full flex overflow-hidden">
+  <div class="h-full flex">
     <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create="handleCreate"
       @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect"
       @rename-node="handleRenameNode" />
@@ -432,12 +414,7 @@ function handlePageHeaderUpdateTitle() {
       <!-- @todo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions"
         @update-title="handlePageHeaderUpdateTitle" />
-      <NoteMeta v-if="note" v-model="noteMetaProxy" class="px-6 pb-1" />
-      <div v-else class="flex items-center justify-center h-full">
-        <p class="text-gray-500">请选择一个笔记查看内容</p>
-      </div>
-      <div ref="vditorElement"
-        :class="(note ? '' : 'hidden') + 'h-full border-2 border-gray-200 rounded-2xl flex flex-col'"></div>
+      <NoteEdit :note="note" v-model="noteMetaProxy"></NoteEdit>
     </div>
   </div>
 </template>

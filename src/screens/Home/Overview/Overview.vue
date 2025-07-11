@@ -28,17 +28,17 @@ todoOps.getTodos().then(res => {
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
     <div class="overflow-hidden col-span-2 order-2">
       <h1 class="text-2xl font-bold mb-4">最近的笔记</h1>
-      <div class="grid gap-2 mb-4 grid-cols-3 xl:grid-cols-4">
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="date" id="id"></NoteBlock>
+      <div class="grid gap-2 mb-4 grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
       </div>
       <h1 class="text-2xl font-bold mb-4">最近的待办</h1>
       <div class="w-full overflow-hidden flex flex-col">

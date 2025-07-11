@@ -368,6 +368,7 @@ console.log(expendedNum)
 
         <Badge v-if="(node as NoteTreeNode).type === 'folder'" class="ml-2" severity="secondary"
           :value='node.children?.length || 0' />
+
         <Button class="size-6! text-xs! ml-2 menu-button" severity="secondary" rounded outlined
           :icon="menuNoteId === node.key ? 'pi pi-times' : 'pi pi-ellipsis-h'" @click.stop="(event) => {
             event.stopPropagation
