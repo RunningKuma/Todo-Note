@@ -10,6 +10,8 @@ import { generateToken, verifyToken } from '@server/utils/jwt';
 import nodemailer, { TransportOptions } from 'nodemailer'
 import { ApiResponse } from '@server/types/request';
 import { UserRawData } from '@server/types/db';
+import fs from 'fs';
+import path from 'path';
 
 export class AuthController {
   private userService: UserService;
@@ -18,6 +20,26 @@ export class AuthController {
   constructor() {
     this.userService = new UserService();
     this.todoService = new TodoService();
+  }
+
+  // 读取邮件模板并替换验证码
+  private getEmailTemplate(code: string): string {
+    try {
+      const templatePath = path.join(__dirname, '..', 'templates', 'verification-email.html');
+      const template = fs.readFileSync(templatePath, 'utf-8');
+      return template.replace('{{CODE}}', code);
+    } catch (error) {
+      console.error('读取邮件模板失败:', error);
+      // 如果模板文件读取失败，返回简单的HTML
+      return `
+        <div style="text-align: center; padding: 40px; font-family: Arial, sans-serif;">
+          <h2 style="color: #ffba00;">登录验证码</h2>
+          <p>您的验证码是：</p>
+          <div style="font-size: 36px; font-weight: bold; color: #ffe291; margin: 20px 0; letter-spacing: 4px;">${code}</div>
+          <p style="color: #ef4444;">验证码有效期为5分钟，请及时使用。</p>
+        </div>
+      `;
+    }
   }
 
   //! 使用 成员定义 会导致 express 路由处理器中的 this 绑定丢失为 undefined
@@ -148,12 +170,8 @@ export class AuthController {
       await this.transporter.sendMail({
         from: `"Woisol-G" <${process.env.MAIL_USER}>`, // 必须使用认证的邮箱地址
         to: email,
-        subject: '登录验证码',
-        html: `
-          <h2>登录验证码</h2>
-          <p>您的验证码是：<strong style="font-size: 24px; color: #007bff;">${code}</strong></p>
-          <p>验证码有效期为5分钟，请及时使用。</p>
-        `
+        subject: 'Todo-Note 登录验证码',
+        html: this.getEmailTemplate(code)
       });
 
       res.status(201).json({ success: true, message: '验证码已发送到您的邮箱' });
