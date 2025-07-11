@@ -82,7 +82,7 @@ class DatabaseService {
    * 初始化数据库连接
    * 如果数据库不存在会自动创建
    */
-  async connect(path: string = resolve(__dirname, '../../database/database.sqlite')): Promise<void> {
+  async connect(path: string = resolve(__dirname, process.env.PROD === 'true' ? './database/database.sqlite' : '../../database/database.sqlite')): Promise<void> {
     try {
       console.log('正在连接数据库...');
 

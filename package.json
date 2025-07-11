@@ -11,6 +11,7 @@
     "build:frontend": "vue-tsc --noEmit && vite build",
     "build:server": "cd server && pnpm build",
     "build:tauri": "tauri build",
+    "start:server": "cd server/dist && node ./index.cjs",
     "preview": "vite preview",
     "tauri": "tauri",
     "lint": "eslint --fix"
