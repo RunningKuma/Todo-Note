@@ -40,7 +40,7 @@ const { title, actions } = defineProps<{
     <DrawerTrigger class="-mr-2.5" v-model="visible" />
     <h2 class="text-2xl text-primary font-semibold">{{ title }}</h2>
     <InplaceEdit v-if="note_title" v-model="note_title" />
-    <Button class="size-6 btn-scale transition-all! duration-300!" severity="secondary" variant="outlined" rounded
+    <Button class="size-8 btn-scale transition-all! duration-300!" severity="secondary" variant="outlined" rounded
       v-for="action in actions" :key="action.label" @click="action.onClick">
       <i :class="action.icon"></i>
     </Button>
