@@ -44,5 +44,10 @@
         "depends": []
       }
     }
+  },
+  "plugins": {
+    "devtools": {
+      "enabled": true
+    }
   }
 }

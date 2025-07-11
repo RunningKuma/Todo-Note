@@ -6,7 +6,7 @@ import { userOps } from "../auth/auth"
 // ref: https://www.bilibili.com/video/BV1qYduYqErV
 const axiosInstance = axios.create({
   //@todo implement env baseURL
-  baseURL: import.meta.env.DEV ? '/api' : 'https://api.example.com/api',
+  baseURL: import.meta.env.DEV ? '/api' : 'http://localhost:3000',
   timeout: 10000, // 设置请求超时时间为10秒
   headers: {
     'Content-Type': 'application/json',
