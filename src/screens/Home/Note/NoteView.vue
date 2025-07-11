@@ -8,7 +8,7 @@ import { Note, NoteMeta as NoteMetaType, NoteTreeNode, NoteTreeType, UpdateNote 
 import { noteOps } from '@/api/note/note';
 import { useToastHelper } from '@/api/utils/toast';
 import { useConfirm } from 'primevue/useconfirm';
-import { createEmptyNoteMeta } from '@/api/utils/note';
+import { createEmptyNoteMeta } from '@/api/utils/note.ts';
 import { noteTreeTool } from '@/api/utils/noteTree';
 import NoteMeta from './components/NoteMeta.vue';
 import { TreeNode } from 'primevue/treenode';

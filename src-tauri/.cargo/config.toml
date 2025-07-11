@@ -1,0 +1,3 @@
+[build]
+# 自定义编译输出目录
+target-dir = "../dist/tauri"
