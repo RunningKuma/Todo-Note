@@ -152,6 +152,11 @@ export class AuthController {
       res.status(400).json({ success: false, message: '邮箱不能为空' });
       return
     }
+    const user = await this.userService.getUserByEmail(email);
+    if (user) {
+      res.status(401).json({ success: false, message: 'User already exists' }).send();
+      return;
+    }
     let code: string
     const storedData = this.verificationCodes.get(email);
     if (storedData && Date.now() < storedData.expires - 20 * 1000) {
