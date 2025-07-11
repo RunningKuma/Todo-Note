@@ -46,11 +46,11 @@ const currentTabIndex = computed(() =>
           <Avatar icon="pi pi-user" size="large" shape="circle" />
           <Popover ref="avatarPopup">
             <div class="p-2 w-90">
-              <div class="flex flex-row gap-3 mb-3">
+              <div class="flex flex-row gap-3 mb-3 overflow-hidden">
                 <Avatar icon="pi pi-user" size="xlarge" shape="circle" />
-                <div>
-                  <p class="font-bold text-2xl truncate">{{ username ?? "---" }}</p>
-                  <p class="text-lg truncate">{{ email ?? "---" }}</p>
+                <div class="overflow-hidden flex-1">
+                  <p class="font-bold text-2xl truncate text-ellipsis">{{ username ?? "---" }}</p>
+                  <p class="text-lg truncate text-ellipsis">{{ email ?? "---" }}</p>
                 </div>
               </div>
               <Button class="w-full block" label="Logout" severity="secondary" @click="handleLogout">

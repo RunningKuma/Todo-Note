@@ -36,7 +36,7 @@ const { title, actions } = defineProps<{
 </script>
 
 <template>
-  <div class="w-full h-9 flex items-center gap-2.5">
+  <div class="w-full h-9 flex items-center gap-2.5 mb-4">
     <DrawerTrigger class="-mr-2.5" v-model="visible" />
     <h2 class="text-2xl text-primary font-semibold">{{ title }}</h2>
     <InplaceEdit v-if="note_title" v-model="note_title" />
