@@ -30,25 +30,29 @@ export class AuthController {
       res.status(400).json({ success: false, message: '邮箱或验证码为空' })
       return
     }
-    const storedData = this.verificationCodes.get(email);
-    if (!storedData) {
-      res.status(400).json({ success: false, message: '验证码不存在或已过期' });
-      return
-    }
 
-    if (Date.now() > storedData.expires) {
+    // bypass 处理
+    if (process.env.MAIL_USER || code !== 'bypass') {
+      const storedData = this.verificationCodes.get(email);
+      if (!storedData) {
+        res.status(400).json({ success: false, message: '验证码不存在或已过期' });
+        return
+      }
+
+      if (Date.now() > storedData.expires) {
+        this.verificationCodes.delete(email);
+        res.status(400).json({ success: false, message: '验证码已过期' });
+        return
+      }
+
+      if (storedData.code !== code) {
+        res.status(400).json({ success: false, message: '验证码错误' });
+        return
+      }
+
+      // 验证成功，删除验证码
       this.verificationCodes.delete(email);
-      res.status(400).json({ success: false, message: '验证码已过期' });
-      return
     }
-
-    if (storedData.code !== code) {
-      res.status(400).json({ success: false, message: '验证码错误' });
-      return
-    }
-
-    // 验证成功，删除验证码
-    this.verificationCodes.delete(email);
 
     //@todo 传过来的 password 不应是明文
     const hashedPassword = await hashPassword(password);
@@ -114,14 +118,26 @@ export class AuthController {
     }
   } as TransportOptions)
   public sendCode = async (req: Request, res: Response<ApiResponse<undefined>>): Promise<void> => {
-    console.debug('using email ' + process.env.MAIL_USER)
+    console.debug(process.env.MAIL_USER ? 'MAIL env not set' : 'using email ' + process.env.MAIL_USER)
+
+    // bypass 提示
+    if (!process.env.MAIL_USER) {
+      res.status(500).json({ success: false, message: '服务端未设置验证邮箱服务，请使用字符串 "bypass" 绕过。' })
+      return
+    }
     const { email } = req.body as { email: string }
     if (!email) {
       res.status(400).json({ success: false, message: '邮箱不能为空' });
       return
     }
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    let code: string
+    const storedData = this.verificationCodes.get(email);
+    if (storedData && Date.now() < storedData.expires - 20 * 1000) {
+      code = storedData.code
+    }
+    else {
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+    }
     const expires = Date.now() + 5 * 60 * 1000; // 5分钟过期
 
     // 存储验证码
