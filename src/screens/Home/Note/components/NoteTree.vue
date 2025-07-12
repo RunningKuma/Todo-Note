@@ -323,7 +323,7 @@ console.log(expendedNum)
 </script>
 <template>
   <Tree :value="noteTreeNodes" v-model:selection-keys="selectedNode" v-model:expanded-keys="expandedKeys"
-    class="w-note-sidebar h-full overflow-y-auto" selectionMode="single" :filter="true" filterBy="label"
+    class="shrink-0 w-note-sidebar h-full overflow-y-auto" selectionMode="single" :filter="true" filterBy="label"
     filterPlaceholder="搜索笔记..." @node-select="emit('select', $event)">
     <template #header>
       <div class="flex">

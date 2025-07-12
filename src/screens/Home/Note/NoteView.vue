@@ -428,7 +428,7 @@ function handlePageHeaderUpdateTitle() {
     <NoteTree :note-tree-nodes="noteTreeNodes" @refresh="handleNoteTreeRefresh" @create="handleCreate"
       @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect"
       @rename-node="handleRenameNode" />
-    <div class="h- flex-1">
+    <div class="h- max-w-full flex-1">
       <!-- @dtodo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions"
         @update-title="handlePageHeaderUpdateTitle" />
