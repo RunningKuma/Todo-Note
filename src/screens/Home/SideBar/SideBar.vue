@@ -23,7 +23,7 @@ const tabs: SideBarTabInterface[] = [
 
 const route = useRoute();
 const currentTabIndex = computed(() =>
-  tabs.findIndex(tab => (tab.route as RouteLocationAsRelativeGeneric).name === route.name)
+  route.name === 'note_detail' ? 2 : tabs.findIndex(tab => (tab.route as RouteLocationAsRelativeGeneric).name === route.name)
 );
 
 </script>
