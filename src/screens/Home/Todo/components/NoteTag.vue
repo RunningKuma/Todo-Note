@@ -9,7 +9,7 @@ defineProps<{ list: NoteList }>()
 const router = useRouter()
 </script>
 <template>
-  <span class="ml-0.5" @click="router.push({ name: 'note_detail', params: { _id: list.id } })">
+  <span class="ml-0.5 btn-scale" @click="router.push({ name: 'note_detail', params: { _id: list.id } })">
     <Chip :label="list.title" class="w-auto! h-7! p-2! truncate! text-ellipsis! overflow-hidden!" />
   </span>
 </template>
