@@ -15,6 +15,14 @@ export type UpdateNote = { meta: UpdateNoteMeta, content?: NoteContent }
 
 export type NoteList = Pick<NoteMeta, 'id' | 'title'>
 
+export type NoteMetaTrans = Pick<NoteMeta, 'id' | 'title' | 'tags'> & {
+  create: string,
+  modified: string
+}
+export type NoteTrans = {
+  meta: NoteMetaTrans,
+  content: NoteContent
+}
 export type Note = {
   meta: NoteMeta,
   content: NoteContent

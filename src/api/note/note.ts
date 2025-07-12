@@ -1,9 +1,10 @@
 import { AxiosResponse } from 'axios';
-import type { Note, NoteMeta, NoteTreeNode, UpdateNote, UpdateNoteMeta } from '../types/note';
+import type { Note, NoteMeta, NoteTrans, NoteTreeNode, UpdateNote, UpdateNoteMeta } from '../types/note';
 import { request } from '../utils/request';
 import { ApiResponse } from '../types/request';
 import { NoteId } from '../types/gerneral';
 import { testNote, testTreeData } from '../constants/test';
+import { noteTransToNote } from '../utils/note';
 
 // let _testNoteTreeData = testTreeData;
 // @todo 极其多重复代码，考虑包装
@@ -59,7 +60,8 @@ export const noteOps = {
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 200) {
-      return response.data as ApiResponse<Note>;
+      const res = { ...response.data, data: noteTransToNote(response.data.data as NoteTrans) }
+      return res as ApiResponse<Note>;
     }
 
     return { success: false, message: message ?? '获取笔记失败' };
@@ -128,7 +130,8 @@ export const noteOps = {
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 200) {
-      return response.data as ApiResponse<Note[]>;
+      const res = { ...response.data, data: response.data.data.map(noteTransToNote) }
+      return res as ApiResponse<Note[]>;
     }
 
     return { success: false, message: message ?? '删除笔记失败' };

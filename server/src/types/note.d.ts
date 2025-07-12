@@ -13,6 +13,15 @@ export type NoteContent = string
 export type UpdateNoteMeta = Pick<NoteMeta, 'id'> & Partial<NoteMeta>
 export type UpdateNote = { meta: UpdateNoteMeta, content?: NoteContent }
 
+export type NoteMetaTrans = Pick<NoteMeta, 'id' | 'title' | 'tags'> & {
+  create: string,
+  modified: string
+}
+export type NoteTrans = {
+  meta: NoteMetaTrans,
+  content: NoteContent
+}
+
 export type Note = {
   meta: NoteMeta,
   content: NoteContent

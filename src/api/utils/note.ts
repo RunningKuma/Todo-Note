@@ -1,6 +1,6 @@
 import { diff } from "util";
 import { NoteDiff } from "../note/diffEngine";
-import { Note, NoteMeta, NoteTreeType } from "../types/note";
+import { Note, NoteMeta, NoteTrans, NoteTreeType } from "../types/note";
 
 // 工具函数
 // export const noteUtils = {
@@ -64,4 +64,14 @@ export function createEmptyNoteMeta(type: NoteTreeType = 'note'): NoteMeta {
     modified: new Date(),
     tags: [],
   };
+}
+export function noteTransToNote(note: NoteTrans): Note {
+  return {
+    meta: {
+      ...note.meta,
+      create: new Date(note.meta.create),
+      modified: new Date(note.meta.modified)
+    },
+    content: note.content
+  } as Note
 }

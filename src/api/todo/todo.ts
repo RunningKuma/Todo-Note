@@ -1,10 +1,11 @@
 import { AxiosResponse } from 'axios';
-import type { Todo } from '../types/todo';
+import type { Todo, TodoTrans } from '../types/todo';
 import { request } from '../utils/request';
 import { ApiResponse } from '../types/request';
 import { TodoId } from '../types/gerneral';
 import { AffectNumber } from '../types/db';
 import { testTodo } from '../constants/test';
+import { todoTransToTodo } from '../utils/todo';
 
 // TODO操作API
 export const todoOps = {
@@ -20,7 +21,8 @@ export const todoOps = {
     const { message } = response.data as { message: string } ?? { message: '' };
 
     if (response.status === 200) {
-      return response.data as ApiResponse<Todo[]>;
+      const res = { ...response.data, data: response.data.data.map(todoTransToTodo) }
+      return res as ApiResponse<Todo[]>;
     // return { success: true, data: response.data as Todo[], message: '' };
     }
 

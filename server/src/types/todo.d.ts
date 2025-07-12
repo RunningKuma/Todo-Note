@@ -28,12 +28,12 @@ export type TodoInfoTrans = Omit<TodoInfo, 'create' | 'ddl' | 'tags'> & {
 }
 export type TodoStatus = { completed: 'completed' | 'in-progress' | 'not-started' | 'pending' }
 
-export type Todo = {
-	info: TodoInfo
-	status: TodoStatus;
-}
 export type TodoTrans = {
 	info: TodoInfoTrans
+	status: TodoStatus;
+}
+export type Todo = {
+	info: TodoInfo
 	status: TodoStatus;
 }
 

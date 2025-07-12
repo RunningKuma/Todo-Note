@@ -27,8 +27,16 @@ export type TodoInfo = {
 	tags?: TodoTags,
 	note_link?: NoteId
 }
+export type TodoInfoTrans = Omit<TodoInfo, 'create' | 'ddl' | 'tags'> & {
+	create: string,
+	ddl?: string,
+}
 export type TodoStatus = { completed: 'completed' | 'in-progress' | 'not-started' | 'pending' }
 
+export type TodoTrans = {
+	info: TodoInfoTrans
+	status: TodoStatus;
+}
 export type Todo = {
 	info: TodoInfo
 	status: TodoStatus;

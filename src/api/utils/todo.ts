@@ -1,4 +1,4 @@
-import { Todo, TodoCreateData } from "../types/todo";
+import { Todo, TodoCreateData, TodoTrans } from "../types/todo";
 
 export function createEmptyTodo(): Todo | null {
   if (!window.crypto) {
@@ -22,3 +22,14 @@ export function createEmptyTodo(): Todo | null {
 // export function createTodo(todo: TodoCreateData): Todo | null {
 //   return
 // }
+
+export function todoTransToTodo(todo: TodoTrans): Todo {
+  return {
+    info: {
+      ...todo.info,
+      create: new Date(todo.info.create),
+      ddl: new Date(todo.info.ddl)
+    },
+    status: todo.status
+  }
+}
