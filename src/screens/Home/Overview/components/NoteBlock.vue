@@ -15,11 +15,16 @@ defineProps<{
       <i class="pi pi-clock pr-1.5 before:text-sm"></i>
       <TimeDisplay :time="note.meta.modified"></TimeDisplay>
     </div>
-    <div class=" relative flex-1 mt-2">
+    <div class=" relative flex-1 mt-2 rounded-lg overflow-hidden">
       <p class="size-full text-ellipsis line-clamp-4 bg-amber-100 pl-2 border-l-6 border-amber-300">
         {{ note.content.substring(0, 100) }}
       </p>
-      <div class="size-full absolute left-0 top-0"></div>
+      <div
+        class="size-full absolute left-0 top-0 bg-gray-500/20 backdrop-blur-sm z-10 opacity-0 hover:opacity-100 transition-all duration-300">
+        <p class=" absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          查看更多
+        </p>
+      </div>
     </div>
   </div>
 </template>
