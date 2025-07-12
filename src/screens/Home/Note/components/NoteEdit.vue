@@ -39,5 +39,6 @@ onUnmounted(() => {
     <p class="text-gray-500">请选择一个笔记查看内容</p>
   </div>
   <div ref="vditorElement"
-    :class="'h-full border-2 border-gray-200 rounded-xl flex flex-col overflow-y-auto' + (note ? '' : 'hidden!')"></div>
+    :class="'h-full border-2 border-gray-200 rounded-xl flex flex-col overflow-y-auto ' + (note ? '' : 'hidden!')">
+  </div>
 </template>
