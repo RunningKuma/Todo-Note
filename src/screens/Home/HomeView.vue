@@ -23,7 +23,7 @@ const visible = ref(true);
 <template>
   <div :class="['main-container', visible ? 'ml-sidebar' : '']">
     <SideBar v-model="visible" :username="userData?.info.username" :email="userData?.info.email"></SideBar>
-    <div class="container p-4">
+    <div class="p-4">
       <!-- <DrawerTrigger v-model="visible" /> -->
       <RouterView v-model="visible" />
     </div>
@@ -39,9 +39,9 @@ const visible = ref(true);
   width: 100%;
   height: 100vh;
   position: relative;
-  display: flex;
+  /* display: flex;
   flex-direction: column;
-  place-items: center;
+  place-items: center; */
   gap: 0.5em;
   transition: margin 0.3s, width 0.3s;
 }
