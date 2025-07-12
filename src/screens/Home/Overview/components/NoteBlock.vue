@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { Note } from '@/api/types/note';
 import TimeDisplay from '@/components/TimeDisplay.vue';
+import { useRouter } from 'vue-router';
 
 defineProps<{
   note: Note
 }>()
+
+const router = useRouter()
 
 </script>
 
@@ -15,7 +18,8 @@ defineProps<{
       <i class="pi pi-clock pr-1.5 before:text-sm"></i>
       <TimeDisplay :time="note.meta.modified"></TimeDisplay>
     </div>
-    <div class=" relative flex-1 mt-2 rounded-lg overflow-hidden">
+    <div class=" relative flex-1 mt-2 rounded-lg overflow-hidden"
+      @click="router.push({ name: 'note_detail', params: { _id: note.meta.id } })">
       <p class="size-full text-ellipsis line-clamp-4 bg-amber-100 pl-2 border-l-6 border-amber-300">
         {{ note.content.substring(0, 100) }}
       </p>
