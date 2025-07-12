@@ -57,7 +57,7 @@ const note = ref<Note>();
 const noteTreeNodes = ref<NoteTreeNode[]>([])
 
 if (_id) {
-  note.value = _setNoteById(_id)
+  _setNoteById(_id)
 }
 
 const noteId = computed({
