@@ -13,7 +13,7 @@ const loading = ref(false);
 </script>
 
 <template>
-  <Card>
+  <Card class="shadow-2xl!">
     <template #title>
       <div class="flex flex-col items-center gap-2 justify-center">
         <Skeleton width="8rem" height="8rem"></Skeleton>
@@ -23,12 +23,7 @@ const loading = ref(false);
     <template #content>
       <div class="flex flex-col gap-4">
         <Message severity="success">You have successfully registered! Please log in to continue.</Message>
-        <Button
-          label="Back to Login Page"
-          class="w-full"
-          @click="$emit('stepTo', 'login')"
-          :disabled="loading"
-        />
+        <Button label="Back to Login Page" class="w-full" @click="$emit('stepTo', 'login')" :disabled="loading" />
       </div>
     </template>
   </Card>

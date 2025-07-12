@@ -7,6 +7,7 @@ import { ref } from "vue";
 import { userOps } from "@/api/auth/auth";
 import router from "@/router";
 import LoginInput from "./components/LoginInput.vue";
+import Icon from "@/components/Icon.vue";
 
 defineEmits(['stepTo']);
 
@@ -41,9 +42,9 @@ const handleForm = async () => {
 </script>
 
 <template>
-  <Card>
+  <Card class="shadow-2xl!">
     <template #title>
-      <Skeleton class="size-32! mx-auto"></Skeleton>
+      <Icon class="size-52! mx-auto -my-6 bg-amber-00 rounded-2xl"></Icon>
       <Divider />
     </template>
     <template #content>

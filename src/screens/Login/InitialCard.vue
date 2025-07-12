@@ -7,6 +7,7 @@ import { ref } from "vue";
 import { userOps } from "@/api/auth/auth";
 import LoginInput from "./components/LoginInput.vue";
 import router from "@/router";
+import Icon from "@/components/Icon.vue";
 
 const isDev = import.meta.env.DEV;
 
@@ -37,10 +38,10 @@ const handleForm = async () => {
 </script>
 
 <template>
-  <Card>
+  <Card class="shadow-2xl!">
     <template #title>
       <!-- @todo try merging initial and login page? -->
-      <Skeleton class="size-32! mx-auto"></Skeleton>
+      <Icon class="size-52! mx-auto -my-6 bg-amber-00 rounded-2xl"></Icon>
       <Divider />
     </template>
     <template #content>

@@ -5,6 +5,7 @@ import { computed, ComputedRef, ref, watch } from 'vue';
 import { userOps } from '@/api/auth/auth';
 import router from '@/router';
 import { RouteLocationAsRelativeGeneric, useRoute } from 'vue-router';
+import Icon from '@/components/Icon.vue';
 const visible = defineModel<boolean>();
 
 const { username, email } = defineProps<{ username?: string, email?: string }>();
@@ -32,8 +33,7 @@ const currentTabIndex = computed(() =>
   <Drawer v-model:visible="visible" :modal="false" :dismissable="false"
     class="w-sidebar! static! px-2 py-4 flex flex-col items-center bg-primary-100!">
     <template #container="{ }"><!-- closeCallback -->
-      <Avatar icon="pi pi-pen-to-square" class="mr-2" size="large"
-        style="background-color: transparent; margin: 0px 0px 10px 0px;" />
+      <Icon class="bg-amber-50 rounded-xl mb-2.5" />
       <div class="w-full relative">
         <div class="w-full h-[35px] absolute bg-primary rounded-md transition-all duration-300"
           :style="{ top: `${currentTabIndex * 45}px` }" />

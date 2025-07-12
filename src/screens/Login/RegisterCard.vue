@@ -103,7 +103,7 @@ function sendCode() {
 </script>
 
 <template>
-  <Card>
+  <Card class="shadow-2xl!">
     <template #title>
       <Button variant="text" label="Back to login" icon="pi pi-arrow-left" size="small"
         @click="$emit('stepTo', 'login')" />
