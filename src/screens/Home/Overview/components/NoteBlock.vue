@@ -1,20 +1,26 @@
 <script setup lang="ts">
+import { Note } from '@/api/types/note';
 import TimeDisplay from '@/components/TimeDisplay.vue';
 
 defineProps<{
-  title: string
-  time: Date
-  id: string
+  note: Note
 }>()
+
 </script>
 
 <template>
-  <div class="min-w-38 h-40 bg-primary-200 rounded-lg p-2 shadow-md flex-1" :id="id">
-    <div class="text-gray-500 flex items-center gap-1.5">
-      <i class="pi pi-clock"></i>
-      <TimeDisplay :time="time"></TimeDisplay>
+  <div class="min-w-38) h-43 bg-primary-200 rounded-lg p-2 shadow-md flex-1 flex flex-col" :id="note.meta.id">
+    <h2 class="h-fit font-bold line-clamp-1 text-lg overflow-hidden text-ellipsis">{{ note.meta.title }}</h2>
+    <div class="text-gray-500 text-sm">
+      <i class="pi pi-clock pr-1.5 before:text-sm"></i>
+      <TimeDisplay :time="note.meta.modified"></TimeDisplay>
     </div>
-    <h2 class="font-bold line-clamp-3 text-lg">{{ title }}</h2>
+    <div class=" relative flex-1 mt-2">
+      <p class="size-full text-ellipsis line-clamp-4 bg-amber-100 pl-2 border-l-6 border-amber-300">
+        {{ note.content.substring(0, 100) }}
+      </p>
+      <div class="size-full absolute left-0 top-0"></div>
+    </div>
   </div>
 </template>
 

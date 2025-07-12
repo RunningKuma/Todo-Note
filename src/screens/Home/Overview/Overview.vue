@@ -6,6 +6,9 @@ import NoteBlock from './components/NoteBlock.vue';
 import { todoOps } from '@/api/todo/todo';
 import { Todo } from '@/api/types/todo';
 import TodoBrief from './components/TodoBrief.vue';
+import { noteOps } from '@/api/note/note';
+import { Note } from '@/api/types/note';
+import { useToastHelper } from '@/api/utils/toast';
 
 const visible = defineModel<boolean>({
   default: true,
@@ -14,31 +17,38 @@ const visible = defineModel<boolean>({
 
 const date = ref<Date | null>(null);
 const todos = ref<Todo[]>([]);
+const recent_notes = ref<Note[]>([]);
+const toast = useToastHelper()
 
+noteOps.getRecentNotes().then(res => {
+  if (res.success) {
+    recent_notes.value = res.data ?? []
+  }
+  else {
+    toast.error('无法获取最近的笔记' + res.message)
+  }
+})
 todoOps.getTodos().then(res => {
   if (res.success) {
     todos.value = res.data ?? [];
   }
+  else {
+    toast.error('无法获取最近的待办' + res.message)
+  }
 });
+
+
+// const
 
 </script>
 
 <template>
-  <PageHeader v-model:visible="visible" title="Dashboard" :actions="[]"/>
+  <PageHeader v-model:visible="visible" title="Dashboard" :actions="[]" />
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
     <div class="overflow-hidden col-span-2 order-2">
       <h1 class="text-2xl font-bold mb-4">最近的笔记</h1>
       <div class="grid gap-2 mb-4 grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
-        <NoteBlock title="标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题标题" :time="Date()" id="id"></NoteBlock>
+        <NoteBlock :note="note" v-for="note in recent_notes"></NoteBlock>
       </div>
       <h1 class="text-2xl font-bold mb-4">最近的待办</h1>
       <div class="w-full overflow-hidden flex flex-col">

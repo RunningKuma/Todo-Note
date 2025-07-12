@@ -119,4 +119,19 @@ export const noteOps = {
 
     return { success: false, message: message ?? '删除笔记失败' };
   },
+  getRecentNotes: async (): Promise<ApiResponse<Note[]>> => {
+    const response = await request.get('/notes/Recent')
+      .catch(res => {
+        console.error('获取最近笔记失败：', res)
+        return { success: false, ...res.response } as AxiosResponse;
+      })
+    const { message } = response.data as { message: string } ?? { message: '' };
+
+    if (response.status === 200) {
+      return response.data as ApiResponse<Note[]>;
+    }
+
+    return { success: false, message: message ?? '删除笔记失败' };
+
+  }
 };

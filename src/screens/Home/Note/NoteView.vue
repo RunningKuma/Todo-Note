@@ -158,7 +158,7 @@ function handleNoteTreeRefresh() {
 function handleUpdateNoteTree() {
   noteOps.updateNoteTree(noteTreeNodes.value).then((res) => {
     if (res.success) {
-      toast.success('笔记目录更新成功');
+      // toast.success('笔记目录更新成功');
     } else {
       toast.error(res.message ?? '未知错误');
     }
@@ -168,21 +168,39 @@ function handleUpdateNoteTree() {
 }
 function handleCreate(type: NoteTreeType) {
   const newNoteMeta: NoteMetaType = createEmptyNoteMeta(type)
-  noteOps.createNote(newNoteMeta).then((res) => {
-    if (res.success) {
-      noteTreeNodes.value.push({
-        key: newNoteMeta.id,
-        label: newNoteMeta.title,
-        type: type,
-      } as NoteTreeNode);
-      handleUpdateNoteTree()
-      toast.success(`新建${type === 'folder' ? '文件夹' : '笔记'}成功`);
-    } else {
-      toast.error(res.message ?? '未知错误');
+  if (type === 'folder') {
+    const newNoteTreeNode: NoteTreeNode = {
+      key: newNoteMeta.id,
+      label: newNoteMeta.title,
+      type: type,
     }
-  }).catch((error) => {
-    console.error('Failed to create note:', error);
-  });
+    noteOps.updateNoteTree([...noteTreeNodes.value, newNoteTreeNode]).then(res => {
+      if (res.success) {
+        toast.success('新建文件夹成功')
+        noteTreeNodes.value.push(newNoteTreeNode)
+      }
+      else {
+        toast.error('新建文件夹失败：' + res.message)
+      }
+    }
+    )
+  } else {
+    noteOps.createNote(newNoteMeta).then((res) => {
+      if (res.success) {
+        noteTreeNodes.value.push({
+          key: newNoteMeta.id,
+          label: newNoteMeta.title,
+          type: type,
+        } as NoteTreeNode);
+        handleUpdateNoteTree()
+        toast.success(`新建笔记成功`);
+      } else {
+        toast.error(res.message ?? '未知错误');
+      }
+    }).catch((error) => {
+      console.error('Failed to create note:', error);
+    });
+  }
 }
 // 删除单个笔记的函数
 async function deleteNote(noteId: string): Promise<boolean> {
@@ -378,7 +396,7 @@ function handleRenameNode(data: { nodeId: string, newName: string }) {
       node.label = newName;
       handleUpdateNoteTree();
     }
-    else if( node.type === 'note') {
+    else if (node.type === 'note') {
       // 更新笔记标题
       _updateNode({
         meta: {
@@ -411,7 +429,7 @@ function handlePageHeaderUpdateTitle() {
       @delete-note="handleDelete" @move-node="handleMoveNode" @select="handleNoteSelect"
       @rename-node="handleRenameNode" />
     <div class="h- flex-1">
-      <!-- @todo title rename 后还需要更新树形结构艹…… -->
+      <!-- @dtodo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions"
         @update-title="handlePageHeaderUpdateTitle" />
       <NoteEdit :note="note" v-model="noteMetaProxy"></NoteEdit>

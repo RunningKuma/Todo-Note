@@ -4,7 +4,7 @@ import { Note, NoteMeta, NoteTreeNode } from '../types/note';
 import { NoteService } from '../services/noteService';
 import { UserId } from '@server/types/gerneral';
 
-interface AuthenticatedRequest extends Request {
+interface AuthenticatedRequest<T = any> extends Request<T> {
   user?: { id: string };
 }
 
@@ -209,7 +209,7 @@ export class NoteController {
       });
     } catch (error) {
 
-      
+
       console.error('Error deleting note:', error);
       res.status(500).json({
         success: false,
