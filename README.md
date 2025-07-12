@@ -1,6 +1,6 @@
-# Todo-Note App
+# Todo-Note
 
-一个功能丰富的桌面应用程序，集成了待办事项管理和笔记功能，使用 Vue 3 + Tauri + Express 构建。
+一个现代化的桌面笔记和待办事项管理应用，使用 Vue 3 + Tauri + Express 构建。
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Vue](https://img.shields.io/badge/Vue-3.x-green.svg)
@@ -12,31 +12,28 @@
 ### 📝 笔记管理
 
 - **富文本编辑器**：基于 Vditor 的 Markdown 编辑器
-- **版本控制**：自动保存笔记版本，支持版本比较和回滚
 - **树形结构**：文件夹和笔记的层级管理
-- **标签系统**：支持多标签分类和筛选
-- **搜索功能**：全文搜索笔记内容
-- **收藏功能**：重要笔记收藏管理
+- **版本控制**：自动保存和版本管理 (已废弃)
 
 ### ✅ 待办事项
 
 - **任务管理**：创建、编辑、删除待办事项
-- **状态追踪**：未开始、进行中、已完成状态管理
-- **优先级设置**：高、中、低优先级分类
-- **截止日期**：设置任务截止时间和提醒
+- **状态追踪**：未完成/已完成状态管理
+- **优先级设置**：五级优先级分类
+- **截止日期**：设置任务截止时间
 - **标签分类**：使用标签组织任务
 - **筛选排序**：多条件筛选和排序
-
 ### 🔒 用户认证
 
 - **JWT 认证**：安全的用户登录注册
 - **密码加密**：BCrypt 密码哈希存储
 - **用户会话**：持久化登录状态
+- **邮箱验证**：注册邮箱验证
 
 ### 💾 数据存储
 
 - **本地数据库**：SQLite 数据持久化
-- **客户端缓存**：IndexedDB 版本管理
+- **RESTful API**：标准化数据接口
 - **数据同步**：前后端数据同步
 
 ## 🛠️ 技术栈
@@ -58,13 +55,15 @@
 - **SQLite** - 轻量级数据库
 - **JWT** - JSON Web Tokens
 - **BCrypt** - 密码加密
+- **Rollup** - 构建工具
 
 ### 开发工具
 
 - **Vite** - 快速构建工具
 - **ESLint** - 代码检查工具
-- **Prettier** - 代码格式化
+- **TypeScript** - 类型检查
 - **PNPM** - 包管理器
+- **Jest** - 测试框架
 
 ## 🚀 快速开始
 
@@ -93,18 +92,27 @@ cd ..
 pnpm run dev
 
 # 或者分别启动
-pnpm run dev:client  # 前端开发服务器
-pnpm run dev:server  # 后端开发服务器
+pnpm run dev:client  # 前端开发服务器 (http://localhost:1420)
+pnpm run dev:server  # 后端开发服务器 (http://localhost:3000)
+
+# 启动 Tauri 桌面应用
+pnpm tauri dev
 ```
 
 ### 构建应用
 
 ```bash
 # 构建前端
-pnpm run build
+pnpm run build:frontend
 
-# 构建 Tauri 应用
-pnpm run tauri build
+# 构建后端
+pnpm run build:server
+
+# 构建 Tauri 桌面应用
+pnpm run build:tauri
+
+# 或者完整构建
+pnpm run build
 ```
 
 ## 📁 项目结构
@@ -113,32 +121,40 @@ pnpm run tauri build
 Todo-Note/
 ├── src/                              # 前端源码
 │   ├── components/                   # 公共组件
-│   │   ├── PageHeader.vue           # 页面头部组件，包含标题、操作按钮
-│   │   └── Time.vue                 # 时间显示组件
+│   │   ├── Icon.vue                 # 图标组件
+│   │   ├── InplaceEdit.vue          # 内联编辑组件
+│   │   ├── PageHeader.vue           # 页面头部组件
+│   │   ├── Time.vue                 # 时间组件
+
 │   ├── screens/                     # 页面组件
 │   │   ├── Home/                    # 主应用页面
 │   │   │   ├── HomeView.vue        # 主页面容器
 │   │   │   ├── Note/               # 笔记功能模块
 │   │   │   │   ├── NoteView.vue    # 笔记主界面
 │   │   │   │   └── components/     # 笔记相关组件
-│   │   │   │       ├── NoteTree.vue     # 笔记树形导航
-│   │   │   │       ├── NoteMeta.vue     # 笔记元数据显示
-│   │   │   │       └── InplaceEdit.vue  # 内联编辑组件，参考：https://primevue.org/inplace/
+│   │   │   │       ├── NoteEdit.vue     # 笔记编辑器
+│   │   │   │       ├── NoteMeta.vue     # 笔记元数据
+│   │   │   │       └── NoteTree.vue     # 笔记树形导航
 │   │   │   ├── Todo/               # 待办事项功能模块
 │   │   │   │   ├── TodoView.vue    # 待办事项主界面
 │   │   │   │   └── components/     # 待办相关组件
-│   │   │   │       ├── TodoItem.vue     # 单个待办项组件
-│   │   │   │       └── TodoDialog.vue   # 待办编辑对话框
-│   │   │   ├── SideBar/            # 侧边栏模块
-│   │   │   │   └── DrawerTrigger.vue # 侧边栏切换按钮
-│   │   │   ├── Overview/           # 概览页面(原主页)
+│   │   │   │       ├── TodoFilter.vue   # 待办筛选器
+│   │   │   │       ├── TodoForm.vue     # 待办表单
+│   │   │   │       └── TodoItem.vue     # 单个待办项
+│   │   │   └── Overview/           # 概览页面
+│   │   │       ├── Overview.vue    # 概览主界面
+│   │   │       └── components/     # 概览组件
+│   │   │           ├── NoteBlock.vue    # 笔记块
+│   │   │           ├── QuickAdd.vue     # 快速添加
+│   │   │           └── TodoOverview.vue # 待办概览
 │   │   └── Login/                  # 登录注册页面
 │   │       ├── LoginView.vue       # 登录主界面
-│   │       ├── LoginCard.vue       # 登录卡片(邮箱密码)
+│   │       ├── LoginCard.vue       # 登录卡片
 │   │       ├── RegisterCard.vue    # 注册卡片
-│   │       ├── InitialCard.vue     # 初始化卡片(输入邮箱)
-│   │       └── RegisterDoneCard.vue # 注册完成卡片
-│   ├── api/                        # API 接口层，用于包装前端相关请求
+│   │       ├── InitialCard.vue     # 初始化卡片
+│   │       └── components/         # 登录组件
+│   │           └── LoginInput.vue  # 登录输入框
+│   ├── api/                        # API 接口层
 │   │   ├── auth/                   # 认证相关 API
 │   │   │   ├── auth.ts            # 用户认证接口
 │   │   │   └── cookie.ts          # Cookie 管理
@@ -207,7 +223,7 @@ Todo-Note/
 │   │   └── database.sqlite        # SQLite 数据库
 │   ├── package.json               # 后端依赖配置
 │   ├── tsconfig.json              # TypeScript 配置
-│   └── README.md                  # 后端说明文档
+│   └── rollup.config.js           # Rollup 构建配置
 ├── src-tauri/                     # Tauri 桌面应用配置
 │   ├── src/
 │   │   ├── main.rs               # Rust 主程序
@@ -243,11 +259,18 @@ Todo-Note/
 
 ### 环境变量
 
-在 `server` 目录下创建 `.env` 文件：
+在 `server` 目录下将 `.env.example` 复制为 `.env` :
 
 ```env
-PORT=3000             # 服务器运行的端口
-JWT_SECRET=jwt_secret # JSON Web Token 加密私钥
+PROD=true
+
+PORT=3000
+JWT_SECRET=jwt_secret
+
+MAIL_HOST=smtp.163.com
+MAIL_PORT=465
+MAIL_USER=
+MAIL_SMTP=
 ```
 
 ## 📖 API 文档
@@ -256,10 +279,11 @@ JWT_SECRET=jwt_secret # JSON Web Token 加密私钥
 
 - `POST /api/auth/register` - 用户注册
 - `POST /api/auth/login` - 用户登录
+- `POST /api/auth/send` - 发送邮箱验证码
 
 ### 待办事项接口
 
-- `GET /api/todos` - 获取所有待办事项
+- `GET /api/todos` - 获取用户待办事项
 - `POST /api/todos` - 创建待办事项
 - `PUT /api/todos` - 更新待办事项
 - `DELETE /api/todos/:id` - 删除待办事项
@@ -292,7 +316,6 @@ JWT_SECRET=jwt_secret # JSON Web Token 加密私钥
 
 - 现代化 UI 设计
 - 响应式布局
-- 深色/浅色主题
 
 ## 🤝 贡献
 
