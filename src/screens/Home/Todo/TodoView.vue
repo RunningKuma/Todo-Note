@@ -175,7 +175,11 @@ function handleTodoOrderChange() {
 todoOps.getTodos().then(res => {
   // @todo 确实存在较短时间登录仍然 invalid token 的情况
   if (res.success) {
-    const todoOrder = localStorage.getItem('todo-order');
+    let todoOrder = localStorage.getItem('todo-order');
+    if (todoOrder.split(',').filter(o => o).length !== res.data.length) {
+      localStorage.setItem('todo-orde', '')
+      todoOrder = null
+    }
     todos.value = todoOrder ? todoOrder.split(',').filter(t => t).map(id => res.data!.find(t => t.info.id === id)!) ?? [] : res.data!;
   }
   else {
