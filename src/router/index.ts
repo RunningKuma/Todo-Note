@@ -1,4 +1,4 @@
-import { createMemoryHistory, createRouter, type RouteRecordRaw } from "vue-router";
+import { createMemoryHistory, createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 
 import HomeView from '@/screens/Home/HomeView.vue';
 import LoginView from '@/screens/Login/LoginView.vue';
@@ -6,6 +6,7 @@ import { userOps } from "@/api/auth/auth";
 import Overview from "@/screens/Home/Overview/Overview.vue";
 import TodoView from "@/screens/Home/Todo/TodoView.vue";
 import Note from "@/screens/Home/Note/NoteView.vue";
+import NoteEdit from "@/screens/Home/Note/components/NoteEdit.vue";
 
 const routes: readonly RouteRecordRaw[] = [
   {
@@ -25,21 +26,20 @@ const routes: readonly RouteRecordRaw[] = [
         path: 'note',
         name: 'note',
         component: Note,
-        children: [
-          {
-            path: ':id',
-            name: 'note-detail',
-            component: Note,
-            props: true
-          },
-        ]
+        // props: true
+      },
+      {
+        path: 'note/:_id',
+        name: 'note_detail',
+        component: Note,
+        props: true
       },
     ]
   },
   { path: '/auth', name: 'auth', component: LoginView },
 ];
 const router = createRouter({
-  history: createMemoryHistory(),
+  history: createWebHistory(),
   routes: routes
 });
 // router.beforeEach(async (to, _from, next) => {

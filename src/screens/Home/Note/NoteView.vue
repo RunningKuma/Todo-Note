@@ -11,7 +11,9 @@ import { createEmptyNoteMeta } from '@/api/utils/note.ts';
 import { noteTreeTool } from '@/api/utils/noteTree';
 import { TreeNode } from 'primevue/treenode';
 import NoteEdit from './components/NoteEdit.vue';
+import { NoteId } from '@/api/types/gerneral';
 
+const { _id } = defineProps<{ _id?: string }>()
 const visible = defineModel<boolean>({
   default: true,
   type: Boolean
@@ -26,16 +28,7 @@ const actions: PageHeaderAction[] = [
         toast.error('还没有打开笔记呢')
         return
       }
-      noteOps.getNote(noteId.value).then((res) => {
-        if (res.success) {
-          note.value = res.data!;
-          toast.success(`笔记 ${noteId.value} 已更新`)
-        } else {
-          toast.error(res.message ?? '未知错误');
-        }
-      }).catch((error) => {
-        console.error('Failed to fetch note:', error);
-      });
+      _setNoteById(noteId.value, true)
     }
   },
   // {
@@ -62,6 +55,10 @@ const confirm = useConfirm();
 
 const note = ref<Note>();
 const noteTreeNodes = ref<NoteTreeNode[]>([])
+
+if (_id) {
+  note.value = _setNoteById(_id)
+}
 
 const noteId = computed({
   get: () => note.value?.meta.id || '',
@@ -111,7 +108,7 @@ watch(
     // selectedVersions.value = [];
     if (!newId) return
     noteDiffEngine.updateNoteId(newId);
-    if (!note.value ||!noteDiffEngine.isInitialized) return
+    if (!note.value || !noteDiffEngine.isInitialized) return
     noteDiffEngine.setContent(note.value.content);
   },
   { immediate: true }
@@ -342,6 +339,21 @@ function handleMoveNode(data: { nodeId: string, targetParentId: string | null, t
   // toast.success('节点移动成功');
 }
 
+function _setNoteById(id: NoteId, successToast: boolean = false) {
+  noteOps.getNote(id).then((res) => {
+    if (res.success) {
+      note.value = res.data!;
+      if (successToast) {
+        toast.success(`笔记 ${noteId.value} 已更新`)
+      }
+    } else {
+      toast.error(res.message ?? '未知错误');
+    }
+  }).catch((error) => {
+    console.error('Failed to fetch note:', error);
+  });
+}
+
 function _updateNode(newNode: UpdateNote) {
   noteOps.updateNote(newNode).then((res) => {
     if (res.success) {
@@ -375,17 +387,7 @@ function _updateNode(newNode: UpdateNote) {
 function handleNoteSelect(node: TreeNode) {
   console.log('Selected node:', node);
   if (node.type === 'note') {
-    noteOps.getNote(node.key).then((res) => {
-      if (res.success) {
-        note.value = res.data!;
-        // noteId.value = node.key;
-        // noteDiffEngine.setContent(note.value!.content);
-      } else {
-        toast.error(res.message ?? '未知错误');
-      }
-    }).catch((error) => {
-      console.error('Failed to fetch note:', error);
-    });
+    _setNoteById(node.key)
   }
 }
 function handleRenameNode(data: { nodeId: string, newName: string }) {
@@ -432,7 +434,8 @@ function handlePageHeaderUpdateTitle() {
       <!-- @dtodo title rename 后还需要更新树形结构艹…… -->
       <PageHeader v-model:visible="visible" v-model:note_title="noteTitle" title="Note" :actions="actions"
         @update-title="handlePageHeaderUpdateTitle" />
-      <NoteEdit class="" :note="note" v-model="noteMetaProxy"></NoteEdit>
+      <!-- <RouterView/> -->
+      <NoteEdit :note="note" v-model="noteMetaProxy"></NoteEdit>
     </div>
   </div>
 </template>

@@ -5,15 +5,17 @@ import { useToastHelper } from '@/api/utils/toast';
 import { noteDiffEngine } from '@/api/note/diffEngine';
 import NoteMeta from './NoteMeta.vue';
 import 'vditor/dist/index.css';
+import { NoteId } from '@/api/types/gerneral';
 
-const noteMetaProxy = defineModel<NoteMetaType | undefined>({
+const toast = useToastHelper();
+
+const noteMetaProxy = defineModel<NoteMetaType>({
   default: {},
   type: Object as () => NoteMetaType
 });
 
-const { note } = defineProps<{ note: Note | undefined }>();
-const vditorElement = ref<HTMLDivElement | undefined>();
-const toast = useToastHelper();
+const { note } = defineProps<{ note?: Note }>();
+const vditorElement = ref<HTMLDivElement>();
 
 onMounted(async () => {
   if (vditorElement.value) {
